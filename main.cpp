@@ -4,6 +4,7 @@
 #include "gyro.h"
 #include <stdio.h>
 
+
 #define I2C_PORT I2C_NUM_0
 #define SDA_PIN 8
 #define SCL_PIN 9

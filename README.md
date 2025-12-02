@@ -2,7 +2,7 @@
 
 Repository for IOT Project at Metropolia University of Applied Sciences.
 
-ToDo 1
+To-Do 1
 
 -	First 3d model for bearing wheel			Amaan
 -	Raw 3d model of jumping rope			Amaan
@@ -16,3 +16,6 @@ ToDo 1
 
 
 deadline:	1.1.2026
+
+[Nischal]
+02.12 - Setting up the ESP-extension in V.S.code. Coding the beginning of reading the sensors.
