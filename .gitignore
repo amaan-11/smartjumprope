@@ -2,7 +2,7 @@
 /build/
 /main/build/
 /components/*/build/
-
+/esp-docs.pdf
 # CMake files
 CMakeCache.txt
 CMakeFiles/
