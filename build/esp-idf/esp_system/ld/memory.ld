@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2024 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,26 +47,25 @@
  */
 /*
  * Automatically generated file. DO NOT EDIT.
- * Espressif IoT Development Framework (ESP-IDF) 5.1.0 Configuration Header
+ * Espressif IoT Development Framework (ESP-IDF) 5.5.1 Configuration Header
  */
        
 /* List of deprecated options */
 /*
- * SPDX-FileCopyrightText: 2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2021-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 /* CPU instruction prefetch padding size for flash mmap scenario */
-_esp_flash_mmap_prefetch_pad_size = 16;
-/* CPU instruction prefetch padding size for memory protection scenario */
-_esp_memprot_prefetch_pad_size = 0;
-/* Memory alignment size for PMS */
-_esp_memprot_align_size = 0;
-_esp_mmu_block_size = (0x8000);
-/**
- * physical memory is mapped twice to the vritual address (IRAM and DRAM).
- * `I_D_SRAM_OFFSET` is the offset between the two locations of the same physical memory
+/*
+ * PMP region granularity size
+ * Software may determine the PMP granularity by writing zero to pmp0cfg, then writing all ones
+ * to pmpaddr0, then reading back pmpaddr0. If G is the index of the least-significant bit set,
+ * the PMP granularity is 2^G+2 bytes.
  */
+/* CPU instruction prefetch padding size for memory protection scenario */
+/* Memory alignment size for PMS */
+    /* rtc timer data (s_rtc_timer_retain_mem, see esp_clk.c files). For rtc_timer_data_in_rtc_mem section. */
 /*
  * IDRAM0_2_SEG_SIZE_DEFAULT is used when page size is 64KB
  */
@@ -77,8 +76,6 @@ MEMORY
    *  of the various regions. The 'data access port' dram/drom regions map to the same iram/irom regions but
    *  are connected to the data port of the CPU and eg allow byte-wise access.
    */
-  /* IRAM for PRO CPU. */
-  iram0_0_seg (RX) : org = (0x40800000), len = 0x4086E610 - (0x40800000 - 0x40800000) - (0x40800000)
   /* Flash mapped instruction data */
   irom_seg (RX) : org = 0x42000020, len = (0x8000 << 8) - 0x20
   /**
@@ -92,16 +89,24 @@ MEMORY
    * Shared data RAM, excluding memory reserved for ROM bss/data/stack.
    * Enabling Bluetooth & Trace Memory features in menuconfig will decrease the amount of RAM available.
    */
-  dram0_0_seg (RW) : org = (0x40800000), len = 0x4086E610 - (0x40800000 - 0x40800000) - (0x40800000)
-  /* Flash mapped constant data */
+  sram_seg (RWX) : org = (0x40800000), len = 0x4086E610 - (0x40800000)
+  /* Flash mapped instruction data */
   drom_seg (R) : org = 0x42000020, len = (0x8000 << 8) - 0x20
   /* (See irom_seg for meaning of 0x20 offset in the above.) */
   /**
    * lp ram memory (RWX). Persists over deep sleep. // TODO: IDF-5667
    */
-  lp_ram_seg(RW) : org = 0x50000000 , len = 0x4000 - 0
+  lp_ram_seg(RW) : org = 0x50000000, len = 0x4000 - (0 + (24))
+  /* We reduced the size of lp_ram_seg by RESERVE_RTC_MEM value.
+     It reserves the amount of LP memory that we use for this memory segment.
+     This segment is intended for keeping:
+       - (lower addr) rtc timer data (s_rtc_timer_retain_mem, see esp_clk.c files).
+       - (higher addr) bootloader rtc data (s_bootloader_retain_mem, when a Kconfig option is on).
+     The aim of this is to keep data that will not be moved around and have a fixed address.
+  */
+  lp_reserved_seg(RW) : org = 0x50000000 + 0x4000 - (0 + (24)), len = (0 + (24))
 }
-/* Heap ends at top of dram0_0_seg */
+/* Heap ends at top of sram_seg */
 _heap_end = 0x40000000;
 _data_seg_org = ORIGIN(rtc_data_seg);
 /**
@@ -113,6 +118,7 @@ REGION_ALIAS("rtc_iram_seg", lp_ram_seg );
 REGION_ALIAS("rtc_data_seg", rtc_iram_seg );
 REGION_ALIAS("rtc_slow_seg", rtc_iram_seg );
 REGION_ALIAS("rtc_data_location", rtc_iram_seg );
+REGION_ALIAS("rtc_reserved_seg", lp_reserved_seg );
   REGION_ALIAS("default_code_seg", irom_seg);
   REGION_ALIAS("default_rodata_seg", drom_seg);
 /**

@@ -1,7 +1,9 @@
-# ninja log v5
-21	28	1764751261685580817	esp-idf/esp_system/ld/memory.ld	d016d89bdd47f759
-21	28	1764751261685580817	/home/nischal/smartjumprope/build/esp-idf/esp_system/ld/memory.ld	d016d89bdd47f759
-20	31	1764751261685580817	project_elf_src_esp32c6.c	25f5c2fdd73ee5fa
-20	31	1764751261685580817	/home/nischal/smartjumprope/build/project_elf_src_esp32c6.c	25f5c2fdd73ee5fa
-20	127	1764751261727261857	partition_table/partition-table.bin	7bf98f411c13c5c5
-20	127	1764751261727261857	/home/nischal/smartjumprope/build/partition_table/partition-table.bin	7bf98f411c13c5c5
+# ninja log v7
+90	129	1764762250794052179	project_elf_src_esp32c6.c	d30e5a88b8ee2b02
+90	129	1764762250794052179	/home/nischal/smartjumprope/build/project_elf_src_esp32c6.c	d30e5a88b8ee2b02
+88	145	1764762250810052185	esp-idf/esp_system/ld/memory.ld	344455ef795669b7
+88	145	1764762250810052185	/home/nischal/smartjumprope/build/esp-idf/esp_system/ld/memory.ld	344455ef795669b7
+88	159	1764762250824052191	esp-idf/esp_system/ld/sections.ld.in	6965d6327d158fae
+88	159	1764762250824052191	/home/nischal/smartjumprope/build/esp-idf/esp_system/ld/sections.ld.in	6965d6327d158fae
+89	513	1764762250942926072	partition_table/partition-table.bin	dc5be05b3c4cff42
+89	513	1764762250942926072	/home/nischal/smartjumprope/build/partition_table/partition-table.bin	dc5be05b3c4cff42
