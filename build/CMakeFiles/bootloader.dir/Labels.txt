@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/home/nischal/smartjumprope/build/CMakeFiles/bootloader
+/home/nischal/smartjumprope/build/CMakeFiles/bootloader.rule
+/home/nischal/smartjumprope/build/CMakeFiles/bootloader-complete.rule
+/home/nischal/smartjumprope/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+/home/nischal/smartjumprope/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/home/nischal/smartjumprope/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/home/nischal/smartjumprope/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/home/nischal/smartjumprope/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/home/nischal/smartjumprope/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/home/nischal/smartjumprope/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
