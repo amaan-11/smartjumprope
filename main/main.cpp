@@ -1,17 +1,12 @@
-#include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <stdio.h>
 
-void hello_task(void *pvParameter)
+extern "C" void app_main(void)
 {
+  printf("Hello ESP32-C6!\n");
   while (1)
   {
-    printf("Hello world!\n");
-    vTaskDelay(pdMS_TO_TICKS(1000)); // delay 1 second
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
-}
-
-void app_main(void)
-{
-  xTaskCreate(hello_task, "hello_task", 2048, NULL, 5, NULL);
 }

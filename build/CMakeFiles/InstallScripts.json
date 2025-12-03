@@ -118,7 +118,8 @@
 		"/home/nischal/smartjumprope/build/esp-idf/spiffs/cmake_install.cmake",
 		"/home/nischal/smartjumprope/build/esp-idf/ulp/cmake_install.cmake",
 		"/home/nischal/smartjumprope/build/esp-idf/usb/cmake_install.cmake",
-		"/home/nischal/smartjumprope/build/esp-idf/wifi_provisioning/cmake_install.cmake"
+		"/home/nischal/smartjumprope/build/esp-idf/wifi_provisioning/cmake_install.cmake",
+		"/home/nischal/smartjumprope/build/esp-idf/main/cmake_install.cmake"
 	],
 	"Parallel" : false
 }
