@@ -1,12 +1,15 @@
+#include "menu.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <stdio.h>
+#include <stdint.h>
 
-extern "C" void app_main(void)
+extern "C" void app_main()
 {
-  printf("Hello ESP32-C6!\n");
-  while (1)
+  static Menu menu;
+
+  while (true)
   {
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    menu.update();
+    vTaskDelay(pdMS_TO_TICKS(50));
   }
 }
