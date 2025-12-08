@@ -158,4 +158,8 @@ $<TARGET_FILE:idf::rt>
 $<TARGET_FILE:idf::spiffs>
 $<TARGET_FILE:idf::wifi_provisioning>
 $<TARGET_FILE:__idf_json>
+$<TARGET_FILE:idf::display>
+$<TARGET_FILE:idf::gyro>
 $<TARGET_FILE:idf::main>
+$<TARGET_FILE:__idf_display>
+$<TARGET_FILE:__idf_gyro>

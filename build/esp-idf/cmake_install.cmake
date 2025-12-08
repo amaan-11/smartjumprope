@@ -559,6 +559,16 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("/home/nischal/smartjumprope/build/esp-idf/display/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/home/nischal/smartjumprope/build/esp-idf/gyro/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("/home/nischal/smartjumprope/build/esp-idf/main/cmake_install.cmake")
 endif()
 

@@ -14,7 +14,7 @@ Specification
     Hermetically sealed for temp and humidity resistance
     Dimensions(mm):20.0(L)x20.0(W)x9.8(H)
 
-
+Need to keep track of the jumping profile of the user. This could be a local thing but ideall should be gotten from a network. And some recnet jumps would be saved in the NVS for faster and offline profiles.  
 
 
 I2C- driver notes:

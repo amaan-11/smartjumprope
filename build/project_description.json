@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "smartjumprope",
-    "project_version":    "a6a5d7c-dirty",
+    "project_version":    "1857bcf-dirty",
     "project_path":       "/home/nischal/smartjumprope",
     "idf_path":           "/home/nischal/esp/esp-idf",
     "build_dir":          "/home/nischal/smartjumprope/build",
@@ -25,8 +25,8 @@
         "COMPONENT_KCONFIGS_PROJBUILD" : "/home/nischal/esp/esp-idf/components/bootloader/Kconfig.projbuild;/home/nischal/esp/esp-idf/components/esp_app_format/Kconfig.projbuild;/home/nischal/esp/esp-idf/components/esp_rom/Kconfig.projbuild;/home/nischal/esp/esp-idf/components/esp_tee/Kconfig.projbuild;/home/nischal/esp/esp-idf/components/esptool_py/Kconfig.projbuild;/home/nischal/esp/esp-idf/components/partition_table/Kconfig.projbuild"
     },
     "common_component_reqs": [ "cxx", "newlib", "freertos", "esp_hw_support", "heap", "log", "soc", "hal", "esp_rom", "esp_common", "esp_system", "riscv" ],
-    "build_components" : [ "app_trace", "app_update", "bootloader", "bootloader_support", "bt", "cmock", "console", "cxx", "driver", "efuse", "esp-tls", "esp_adc", "esp_app_format", "esp_bootloader_format", "esp_coex", "esp_common", "esp_driver_ana_cmpr", "esp_driver_bitscrambler", "esp_driver_cam", "esp_driver_dac", "esp_driver_gpio", "esp_driver_gptimer", "esp_driver_i2c", "esp_driver_i2s", "esp_driver_isp", "esp_driver_jpeg", "esp_driver_ledc", "esp_driver_mcpwm", "esp_driver_parlio", "esp_driver_pcnt", "esp_driver_ppa", "esp_driver_rmt", "esp_driver_sdio", "esp_driver_sdm", "esp_driver_sdmmc", "esp_driver_sdspi", "esp_driver_spi", "esp_driver_touch_sens", "esp_driver_tsens", "esp_driver_twai", "esp_driver_uart", "esp_driver_usb_serial_jtag", "esp_eth", "esp_event", "esp_gdbstub", "esp_hid", "esp_http_client", "esp_http_server", "esp_https_ota", "esp_https_server", "esp_hw_support", "esp_lcd", "esp_local_ctrl", "esp_mm", "esp_netif", "esp_netif_stack", "esp_partition", "esp_phy", "esp_pm", "esp_psram", "esp_ringbuf", "esp_rom", "esp_security", "esp_system", "esp_tee", "esp_timer", "esp_vfs_console", "esp_wifi", "espcoredump", "esptool_py", "fatfs", "freertos", "hal", "heap", "http_parser", "idf_test", "ieee802154", "json", "log", "lwip", "main", "mbedtls", "mqtt", "newlib", "nvs_flash", "nvs_sec_provider", "openthread", "partition_table", "protobuf-c", "protocomm", "pthread", "riscv", "rt", "sdmmc", "soc", "spi_flash", "spiffs", "tcp_transport", "ulp", "unity", "usb", "vfs", "wear_levelling", "wifi_provisioning", "wpa_supplicant", "" ],
-    "build_component_paths" : [ "/home/nischal/esp/esp-idf/components/app_trace", "/home/nischal/esp/esp-idf/components/app_update", "/home/nischal/esp/esp-idf/components/bootloader", "/home/nischal/esp/esp-idf/components/bootloader_support", "/home/nischal/esp/esp-idf/components/bt", "/home/nischal/esp/esp-idf/components/cmock", "/home/nischal/esp/esp-idf/components/console", "/home/nischal/esp/esp-idf/components/cxx", "/home/nischal/esp/esp-idf/components/driver", "/home/nischal/esp/esp-idf/components/efuse", "/home/nischal/esp/esp-idf/components/esp-tls", "/home/nischal/esp/esp-idf/components/esp_adc", "/home/nischal/esp/esp-idf/components/esp_app_format", "/home/nischal/esp/esp-idf/components/esp_bootloader_format", "/home/nischal/esp/esp-idf/components/esp_coex", "/home/nischal/esp/esp-idf/components/esp_common", "/home/nischal/esp/esp-idf/components/esp_driver_ana_cmpr", "/home/nischal/esp/esp-idf/components/esp_driver_bitscrambler", "/home/nischal/esp/esp-idf/components/esp_driver_cam", "/home/nischal/esp/esp-idf/components/esp_driver_dac", "/home/nischal/esp/esp-idf/components/esp_driver_gpio", "/home/nischal/esp/esp-idf/components/esp_driver_gptimer", "/home/nischal/esp/esp-idf/components/esp_driver_i2c", "/home/nischal/esp/esp-idf/components/esp_driver_i2s", "/home/nischal/esp/esp-idf/components/esp_driver_isp", "/home/nischal/esp/esp-idf/components/esp_driver_jpeg", "/home/nischal/esp/esp-idf/components/esp_driver_ledc", "/home/nischal/esp/esp-idf/components/esp_driver_mcpwm", "/home/nischal/esp/esp-idf/components/esp_driver_parlio", "/home/nischal/esp/esp-idf/components/esp_driver_pcnt", "/home/nischal/esp/esp-idf/components/esp_driver_ppa", "/home/nischal/esp/esp-idf/components/esp_driver_rmt", "/home/nischal/esp/esp-idf/components/esp_driver_sdio", "/home/nischal/esp/esp-idf/components/esp_driver_sdm", "/home/nischal/esp/esp-idf/components/esp_driver_sdmmc", "/home/nischal/esp/esp-idf/components/esp_driver_sdspi", "/home/nischal/esp/esp-idf/components/esp_driver_spi", "/home/nischal/esp/esp-idf/components/esp_driver_touch_sens", "/home/nischal/esp/esp-idf/components/esp_driver_tsens", "/home/nischal/esp/esp-idf/components/esp_driver_twai", "/home/nischal/esp/esp-idf/components/esp_driver_uart", "/home/nischal/esp/esp-idf/components/esp_driver_usb_serial_jtag", "/home/nischal/esp/esp-idf/components/esp_eth", "/home/nischal/esp/esp-idf/components/esp_event", "/home/nischal/esp/esp-idf/components/esp_gdbstub", "/home/nischal/esp/esp-idf/components/esp_hid", "/home/nischal/esp/esp-idf/components/esp_http_client", "/home/nischal/esp/esp-idf/components/esp_http_server", "/home/nischal/esp/esp-idf/components/esp_https_ota", "/home/nischal/esp/esp-idf/components/esp_https_server", "/home/nischal/esp/esp-idf/components/esp_hw_support", "/home/nischal/esp/esp-idf/components/esp_lcd", "/home/nischal/esp/esp-idf/components/esp_local_ctrl", "/home/nischal/esp/esp-idf/components/esp_mm", "/home/nischal/esp/esp-idf/components/esp_netif", "/home/nischal/esp/esp-idf/components/esp_netif_stack", "/home/nischal/esp/esp-idf/components/esp_partition", "/home/nischal/esp/esp-idf/components/esp_phy", "/home/nischal/esp/esp-idf/components/esp_pm", "/home/nischal/esp/esp-idf/components/esp_psram", "/home/nischal/esp/esp-idf/components/esp_ringbuf", "/home/nischal/esp/esp-idf/components/esp_rom", "/home/nischal/esp/esp-idf/components/esp_security", "/home/nischal/esp/esp-idf/components/esp_system", "/home/nischal/esp/esp-idf/components/esp_tee", "/home/nischal/esp/esp-idf/components/esp_timer", "/home/nischal/esp/esp-idf/components/esp_vfs_console", "/home/nischal/esp/esp-idf/components/esp_wifi", "/home/nischal/esp/esp-idf/components/espcoredump", "/home/nischal/esp/esp-idf/components/esptool_py", "/home/nischal/esp/esp-idf/components/fatfs", "/home/nischal/esp/esp-idf/components/freertos", "/home/nischal/esp/esp-idf/components/hal", "/home/nischal/esp/esp-idf/components/heap", "/home/nischal/esp/esp-idf/components/http_parser", "/home/nischal/esp/esp-idf/components/idf_test", "/home/nischal/esp/esp-idf/components/ieee802154", "/home/nischal/esp/esp-idf/components/json", "/home/nischal/esp/esp-idf/components/log", "/home/nischal/esp/esp-idf/components/lwip", "/home/nischal/smartjumprope/main", "/home/nischal/esp/esp-idf/components/mbedtls", "/home/nischal/esp/esp-idf/components/mqtt", "/home/nischal/esp/esp-idf/components/newlib", "/home/nischal/esp/esp-idf/components/nvs_flash", "/home/nischal/esp/esp-idf/components/nvs_sec_provider", "/home/nischal/esp/esp-idf/components/openthread", "/home/nischal/esp/esp-idf/components/partition_table", "/home/nischal/esp/esp-idf/components/protobuf-c", "/home/nischal/esp/esp-idf/components/protocomm", "/home/nischal/esp/esp-idf/components/pthread", "/home/nischal/esp/esp-idf/components/riscv", "/home/nischal/esp/esp-idf/components/rt", "/home/nischal/esp/esp-idf/components/sdmmc", "/home/nischal/esp/esp-idf/components/soc", "/home/nischal/esp/esp-idf/components/spi_flash", "/home/nischal/esp/esp-idf/components/spiffs", "/home/nischal/esp/esp-idf/components/tcp_transport", "/home/nischal/esp/esp-idf/components/ulp", "/home/nischal/esp/esp-idf/components/unity", "/home/nischal/esp/esp-idf/components/usb", "/home/nischal/esp/esp-idf/components/vfs", "/home/nischal/esp/esp-idf/components/wear_levelling", "/home/nischal/esp/esp-idf/components/wifi_provisioning", "/home/nischal/esp/esp-idf/components/wpa_supplicant", "" ],
+    "build_components" : [ "app_trace", "app_update", "bootloader", "bootloader_support", "bt", "cmock", "console", "cxx", "display", "driver", "efuse", "esp-tls", "esp_adc", "esp_app_format", "esp_bootloader_format", "esp_coex", "esp_common", "esp_driver_ana_cmpr", "esp_driver_bitscrambler", "esp_driver_cam", "esp_driver_dac", "esp_driver_gpio", "esp_driver_gptimer", "esp_driver_i2c", "esp_driver_i2s", "esp_driver_isp", "esp_driver_jpeg", "esp_driver_ledc", "esp_driver_mcpwm", "esp_driver_parlio", "esp_driver_pcnt", "esp_driver_ppa", "esp_driver_rmt", "esp_driver_sdio", "esp_driver_sdm", "esp_driver_sdmmc", "esp_driver_sdspi", "esp_driver_spi", "esp_driver_touch_sens", "esp_driver_tsens", "esp_driver_twai", "esp_driver_uart", "esp_driver_usb_serial_jtag", "esp_eth", "esp_event", "esp_gdbstub", "esp_hid", "esp_http_client", "esp_http_server", "esp_https_ota", "esp_https_server", "esp_hw_support", "esp_lcd", "esp_local_ctrl", "esp_mm", "esp_netif", "esp_netif_stack", "esp_partition", "esp_phy", "esp_pm", "esp_psram", "esp_ringbuf", "esp_rom", "esp_security", "esp_system", "esp_tee", "esp_timer", "esp_vfs_console", "esp_wifi", "espcoredump", "esptool_py", "fatfs", "freertos", "gyro", "hal", "heap", "http_parser", "idf_test", "ieee802154", "json", "log", "lwip", "main", "mbedtls", "mqtt", "newlib", "nvs_flash", "nvs_sec_provider", "openthread", "partition_table", "protobuf-c", "protocomm", "pthread", "riscv", "rt", "sdmmc", "soc", "spi_flash", "spiffs", "tcp_transport", "ulp", "unity", "usb", "vfs", "wear_levelling", "wifi_provisioning", "wpa_supplicant", "" ],
+    "build_component_paths" : [ "/home/nischal/esp/esp-idf/components/app_trace", "/home/nischal/esp/esp-idf/components/app_update", "/home/nischal/esp/esp-idf/components/bootloader", "/home/nischal/esp/esp-idf/components/bootloader_support", "/home/nischal/esp/esp-idf/components/bt", "/home/nischal/esp/esp-idf/components/cmock", "/home/nischal/esp/esp-idf/components/console", "/home/nischal/esp/esp-idf/components/cxx", "/home/nischal/smartjumprope/components/display", "/home/nischal/esp/esp-idf/components/driver", "/home/nischal/esp/esp-idf/components/efuse", "/home/nischal/esp/esp-idf/components/esp-tls", "/home/nischal/esp/esp-idf/components/esp_adc", "/home/nischal/esp/esp-idf/components/esp_app_format", "/home/nischal/esp/esp-idf/components/esp_bootloader_format", "/home/nischal/esp/esp-idf/components/esp_coex", "/home/nischal/esp/esp-idf/components/esp_common", "/home/nischal/esp/esp-idf/components/esp_driver_ana_cmpr", "/home/nischal/esp/esp-idf/components/esp_driver_bitscrambler", "/home/nischal/esp/esp-idf/components/esp_driver_cam", "/home/nischal/esp/esp-idf/components/esp_driver_dac", "/home/nischal/esp/esp-idf/components/esp_driver_gpio", "/home/nischal/esp/esp-idf/components/esp_driver_gptimer", "/home/nischal/esp/esp-idf/components/esp_driver_i2c", "/home/nischal/esp/esp-idf/components/esp_driver_i2s", "/home/nischal/esp/esp-idf/components/esp_driver_isp", "/home/nischal/esp/esp-idf/components/esp_driver_jpeg", "/home/nischal/esp/esp-idf/components/esp_driver_ledc", "/home/nischal/esp/esp-idf/components/esp_driver_mcpwm", "/home/nischal/esp/esp-idf/components/esp_driver_parlio", "/home/nischal/esp/esp-idf/components/esp_driver_pcnt", "/home/nischal/esp/esp-idf/components/esp_driver_ppa", "/home/nischal/esp/esp-idf/components/esp_driver_rmt", "/home/nischal/esp/esp-idf/components/esp_driver_sdio", "/home/nischal/esp/esp-idf/components/esp_driver_sdm", "/home/nischal/esp/esp-idf/components/esp_driver_sdmmc", "/home/nischal/esp/esp-idf/components/esp_driver_sdspi", "/home/nischal/esp/esp-idf/components/esp_driver_spi", "/home/nischal/esp/esp-idf/components/esp_driver_touch_sens", "/home/nischal/esp/esp-idf/components/esp_driver_tsens", "/home/nischal/esp/esp-idf/components/esp_driver_twai", "/home/nischal/esp/esp-idf/components/esp_driver_uart", "/home/nischal/esp/esp-idf/components/esp_driver_usb_serial_jtag", "/home/nischal/esp/esp-idf/components/esp_eth", "/home/nischal/esp/esp-idf/components/esp_event", "/home/nischal/esp/esp-idf/components/esp_gdbstub", "/home/nischal/esp/esp-idf/components/esp_hid", "/home/nischal/esp/esp-idf/components/esp_http_client", "/home/nischal/esp/esp-idf/components/esp_http_server", "/home/nischal/esp/esp-idf/components/esp_https_ota", "/home/nischal/esp/esp-idf/components/esp_https_server", "/home/nischal/esp/esp-idf/components/esp_hw_support", "/home/nischal/esp/esp-idf/components/esp_lcd", "/home/nischal/esp/esp-idf/components/esp_local_ctrl", "/home/nischal/esp/esp-idf/components/esp_mm", "/home/nischal/esp/esp-idf/components/esp_netif", "/home/nischal/esp/esp-idf/components/esp_netif_stack", "/home/nischal/esp/esp-idf/components/esp_partition", "/home/nischal/esp/esp-idf/components/esp_phy", "/home/nischal/esp/esp-idf/components/esp_pm", "/home/nischal/esp/esp-idf/components/esp_psram", "/home/nischal/esp/esp-idf/components/esp_ringbuf", "/home/nischal/esp/esp-idf/components/esp_rom", "/home/nischal/esp/esp-idf/components/esp_security", "/home/nischal/esp/esp-idf/components/esp_system", "/home/nischal/esp/esp-idf/components/esp_tee", "/home/nischal/esp/esp-idf/components/esp_timer", "/home/nischal/esp/esp-idf/components/esp_vfs_console", "/home/nischal/esp/esp-idf/components/esp_wifi", "/home/nischal/esp/esp-idf/components/espcoredump", "/home/nischal/esp/esp-idf/components/esptool_py", "/home/nischal/esp/esp-idf/components/fatfs", "/home/nischal/esp/esp-idf/components/freertos", "/home/nischal/smartjumprope/components/gyro", "/home/nischal/esp/esp-idf/components/hal", "/home/nischal/esp/esp-idf/components/heap", "/home/nischal/esp/esp-idf/components/http_parser", "/home/nischal/esp/esp-idf/components/idf_test", "/home/nischal/esp/esp-idf/components/ieee802154", "/home/nischal/esp/esp-idf/components/json", "/home/nischal/esp/esp-idf/components/log", "/home/nischal/esp/esp-idf/components/lwip", "/home/nischal/smartjumprope/main", "/home/nischal/esp/esp-idf/components/mbedtls", "/home/nischal/esp/esp-idf/components/mqtt", "/home/nischal/esp/esp-idf/components/newlib", "/home/nischal/esp/esp-idf/components/nvs_flash", "/home/nischal/esp/esp-idf/components/nvs_sec_provider", "/home/nischal/esp/esp-idf/components/openthread", "/home/nischal/esp/esp-idf/components/partition_table", "/home/nischal/esp/esp-idf/components/protobuf-c", "/home/nischal/esp/esp-idf/components/protocomm", "/home/nischal/esp/esp-idf/components/pthread", "/home/nischal/esp/esp-idf/components/riscv", "/home/nischal/esp/esp-idf/components/rt", "/home/nischal/esp/esp-idf/components/sdmmc", "/home/nischal/esp/esp-idf/components/soc", "/home/nischal/esp/esp-idf/components/spi_flash", "/home/nischal/esp/esp-idf/components/spiffs", "/home/nischal/esp/esp-idf/components/tcp_transport", "/home/nischal/esp/esp-idf/components/ulp", "/home/nischal/esp/esp-idf/components/unity", "/home/nischal/esp/esp-idf/components/usb", "/home/nischal/esp/esp-idf/components/vfs", "/home/nischal/esp/esp-idf/components/wear_levelling", "/home/nischal/esp/esp-idf/components/wifi_provisioning", "/home/nischal/esp/esp-idf/components/wpa_supplicant", "" ],
     "build_component_info" : {
         "app_trace": {
             "alias": "idf::app_trace",
@@ -147,6 +147,21 @@
             "file": "/home/nischal/smartjumprope/build/esp-idf/cxx/libcxx.a",
             "sources": [ "/home/nischal/esp/esp-idf/components/cxx/cxx_exception_stubs.cpp", "/home/nischal/esp/esp-idf/components/cxx/cxx_guards.cpp", "/home/nischal/esp/esp-idf/components/cxx/cxx_init.cpp" ],
             "include_dirs": []
+        },
+        "display": {
+            "alias": "idf::display",
+            "target": "___idf_display",
+            "prefix": "idf",
+            "dir": "/home/nischal/smartjumprope/components/display",
+            "type": "LIBRARY",
+            "lib": "__idf_display",
+            "reqs": [],
+            "priv_reqs": [],
+            "managed_reqs": [],
+            "managed_priv_reqs": [],
+            "file": "/home/nischal/smartjumprope/build/esp-idf/display/libdisplay.a",
+            "sources": [ "/home/nischal/smartjumprope/components/display/display.c" ],
+            "include_dirs": [ "." ]
         },
         "driver": {
             "alias": "idf::driver",
@@ -1108,6 +1123,21 @@
             "sources": [ "/home/nischal/esp/esp-idf/components/freertos/heap_idf.c", "/home/nischal/esp/esp-idf/components/freertos/app_startup.c", "/home/nischal/esp/esp-idf/components/freertos/port_common.c", "/home/nischal/esp/esp-idf/components/freertos/port_systick.c", "/home/nischal/esp/esp-idf/components/freertos/FreeRTOS-Kernel/list.c", "/home/nischal/esp/esp-idf/components/freertos/FreeRTOS-Kernel/queue.c", "/home/nischal/esp/esp-idf/components/freertos/FreeRTOS-Kernel/tasks.c", "/home/nischal/esp/esp-idf/components/freertos/FreeRTOS-Kernel/timers.c", "/home/nischal/esp/esp-idf/components/freertos/FreeRTOS-Kernel/event_groups.c", "/home/nischal/esp/esp-idf/components/freertos/FreeRTOS-Kernel/stream_buffer.c", "/home/nischal/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c", "/home/nischal/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/portasm.S", "/home/nischal/esp/esp-idf/components/freertos/esp_additions/freertos_compatibility.c", "/home/nischal/esp/esp-idf/components/freertos/esp_additions/idf_additions_event_groups.c", "/home/nischal/esp/esp-idf/components/freertos/esp_additions/idf_additions.c" ],
             "include_dirs": [ "config/include", "config/include/freertos", "config/riscv/include", "FreeRTOS-Kernel/include", "FreeRTOS-Kernel/portable/riscv/include", "FreeRTOS-Kernel/portable/riscv/include/freertos", "esp_additions/include" ]
         },
+        "gyro": {
+            "alias": "idf::gyro",
+            "target": "___idf_gyro",
+            "prefix": "idf",
+            "dir": "/home/nischal/smartjumprope/components/gyro",
+            "type": "LIBRARY",
+            "lib": "__idf_gyro",
+            "reqs": [ "driver" ],
+            "priv_reqs": [],
+            "managed_reqs": [],
+            "managed_priv_reqs": [],
+            "file": "/home/nischal/smartjumprope/build/esp-idf/gyro/libgyro.a",
+            "sources": [ "/home/nischal/smartjumprope/components/gyro/gyro.cpp" ],
+            "include_dirs": [ "." ]
+        },
         "hal": {
             "alias": "idf::hal",
             "target": "___idf_hal",
@@ -1235,12 +1265,12 @@
             "dir": "/home/nischal/smartjumprope/main",
             "type": "LIBRARY",
             "lib": "__idf_main",
-            "reqs": [],
+            "reqs": [ "display", "gyro" ],
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/home/nischal/smartjumprope/build/esp-idf/main/libmain.a",
-            "sources": [ "/home/nischal/smartjumprope/main/main.cpp" ],
+            "sources": [ "/home/nischal/smartjumprope/main/main.cpp", "/home/nischal/smartjumprope/main/gpio_pin.cpp", "/home/nischal/smartjumprope/main/menu.cpp" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {
@@ -2907,7 +2937,31 @@
             "prefix": "idf",
             "dir": "/home/nischal/smartjumprope/main",
             "lib": "__idf_main",
+            "reqs": [ "display", "gyro" ],
+            "priv_reqs": [],
+            "managed_reqs": [],
+            "managed_priv_reqs": [],
+            "include_dirs": [ "." ]
+        },
+        "display": {
+            "alias": "idf::display",
+            "target": "___idf_display",
+            "prefix": "idf",
+            "dir": "/home/nischal/smartjumprope/components/display",
+            "lib": "__idf_display",
             "reqs": [],
+            "priv_reqs": [],
+            "managed_reqs": [],
+            "managed_priv_reqs": [],
+            "include_dirs": [ "." ]
+        },
+        "gyro": {
+            "alias": "idf::gyro",
+            "target": "___idf_gyro",
+            "prefix": "idf",
+            "dir": "/home/nischal/smartjumprope/components/gyro",
+            "lib": "__idf_gyro",
+            "reqs": [ "driver" ],
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],

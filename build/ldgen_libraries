@@ -158,4 +158,8 @@
 /home/nischal/smartjumprope/build/esp-idf/spiffs/libspiffs.a
 /home/nischal/smartjumprope/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
 /home/nischal/smartjumprope/build/esp-idf/json/libjson.a
+/home/nischal/smartjumprope/build/esp-idf/display/libdisplay.a
+/home/nischal/smartjumprope/build/esp-idf/gyro/libgyro.a
 /home/nischal/smartjumprope/build/esp-idf/main/libmain.a
+/home/nischal/smartjumprope/build/esp-idf/display/libdisplay.a
+/home/nischal/smartjumprope/build/esp-idf/gyro/libgyro.a
