@@ -1,0 +1,21 @@
+Specification
+
+    Supply Voltage: 3.3V, 5V
+    Operation Current: 6.5mA
+    Standby current: 5μA
+    Sensitivity: 14 LSBs per °/sec
+    Full scale range: ±2000°/sec
+    Acceleration: 10,000g for 0.3ms
+    On-chip temperature sensor
+    Crowtail compatible interface
+    Three integrated 16-bit ADCs
+    ±2000°/s full scale range and 14.375 LSBs per °/s sensitivity
+    Integrated amplifiers and low-pass filters
+    Hermetically sealed for temp and humidity resistance
+    Dimensions(mm):20.0(L)x20.0(W)x9.8(H)
+
+
+
+
+I2C- driver notes:
+We realized that our first version of the I2C slave driver had some problems and was not easy to use, so we have prepared a second version of the I2C slave driver, which solves many of the problems with our current I2C slave and which will be the focus of our maintenance. We encourage and recommend that you use the second version of the I2C slave driver, which you can do by enabling CONFIG_I2C_ENABLE_SLAVE_DRIVER_VERSION_2. This document focuses on the content of I2C slave v2.0. If you still want to read programming guide of I2C slave v1.0, please refer to I2C Slave v1.0. The I2C slave v1.0 driver will be removed with the IDF v6.0 update.
