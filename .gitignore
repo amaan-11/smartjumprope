@@ -3,6 +3,7 @@
 /main/build/
 /components/*/build/
 /esp-docs.pdf
+/.vscode
 # CMake files
 CMakeCache.txt
 CMakeFiles/
