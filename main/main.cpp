@@ -11,14 +11,34 @@
 #include "mutex.h"
 #include "components/gyro/gyro.h"
 #include "components/display/ssd1366.h"
-extern "C" void app_main()
-{
-  static Menu menu;
-  static SensorReading GyroSensor;
+#include "jump.h"
 
-  while (true)
-  {
-    menu.update();
-    vTaskDelay(pdMS_TO_TICKS(50));
-  }
+SensorReading gyro(0, 21, 22); // i2c_port, sda_pin, scl_pin
+JumpDetector jumpDetector(&gyro);
+
+extern "C" void app_main() {
+  gyro.begin();
+
+  // Jump detection task
+  xTaskCreate(
+      [](void *) {
+        while (true) {
+          jumpDetector.update();
+          vTaskDelay(pdMS_TO_TICKS(10)); // check every 10ms
+        }
+      },
+      "JumpDetectTask", 2048, nullptr, 5, nullptr);
+
+  // Task that handles jumps (display, logging, cloud)
+  xTaskCreate(
+      [](void *) {
+        uint32_t timestamp;
+        while (true) {
+          if (jumpDetector.getJump(timestamp, portMAX_DELAY)) {
+            printf("Jump detected at %u ms\n", timestamp);
+            // TODO: update display, send to cloud, etc.
+          }
+        }
+      },
+      "JumpHandlerTask", 2048, nullptr, 5, nullptr);
 }
