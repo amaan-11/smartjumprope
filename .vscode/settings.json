@@ -1,8 +1,0 @@
-{
-  "idf.port": "/dev/ttyACM0",
-  "editor.fontFamily": "'JetBrainsMono Nerd Font', monospace",
-  "editor.fontSize": 20,
-  "editor.formatOnSave": true,
-  "editor.tabSize": 2,
-  "C_Cpp.default.compilerPath": "/usr/bin/clang"
-}
