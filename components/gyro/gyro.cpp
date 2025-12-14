@@ -1,4 +1,3 @@
-// gyro.cpp
 #include "gyro.h"
 #include "esp_log.h"
 
@@ -124,6 +123,6 @@ void SensorReading::taskLoop() {
       xQueueSend(data_queue, &data, 0);
     }
 
-    vTaskDelay(pdMS_TO_TICKS(10)); // 100 Hz update rate
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }

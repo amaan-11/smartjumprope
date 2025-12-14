@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include "mutex.h"
 #include "components/gyro/gyro.h"
-#include "components/display/ssd1366.h"
 #include "jump.h"
 
 SensorReading gyro(0, 21, 22); // i2c_port, sda_pin, scl_pin
