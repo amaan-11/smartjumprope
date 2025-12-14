@@ -6,5 +6,5 @@ idf_component_register(
         "gpio_pin.cpp"
         "menu.cpp"
     INCLUDE_DIRS "."
-    REQUIRES gyro
+    REQUIRES gyro esp_lcd display
 )

@@ -4,6 +4,7 @@
 /components/*/build/
 /esp-docs.pdf
 /.vscode
+/Smart_Rope.pdf
 # CMake files
 CMakeCache.txt
 CMakeFiles/

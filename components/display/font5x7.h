@@ -1,0 +1,9 @@
+#pragma once
+#include <cstdint>
+
+constexpr int FONT_WIDTH  = 5;
+constexpr int FONT_HEIGHT = 7;
+constexpr int FONT_FIRST_CHAR = 32;
+constexpr int FONT_LAST_CHAR  = 127;
+
+extern const uint8_t font5x7[][FONT_WIDTH];
