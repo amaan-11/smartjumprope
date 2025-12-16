@@ -1,10 +1,12 @@
 #pragma once
 
-#include "esp_lcd_io_i2c.h"
 #include "driver/i2c.h"
-#include "esp_lcd_panel_io.h"
-#include "esp_lcd_panel_vendor.h"
 #include "esp_err.h"
+#include "esp_lcd_io_i2c.h"
+#include "esp_lcd_panel_io.h"
+#include "esp_lcd_panel_ops.h"
+#include "esp_lcd_panel_ssd1306.h"
+#include "esp_lcd_panel_vendor.h"
 #include <cstdint>
 
 class OledDisplay {

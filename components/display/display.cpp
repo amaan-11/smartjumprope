@@ -2,6 +2,7 @@
 #include <cstring>
 #include "font5x7.h"
 
+const uint8_t c = 32;
 const uint8_t *glyph = font5x7[c - FONT_FIRST_CHAR];
 
 OledDisplay::OledDisplay(

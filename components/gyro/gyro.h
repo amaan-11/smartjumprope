@@ -11,17 +11,21 @@ typedef struct {
 
 class SensorReading {
 public:
-  SensorReading(int i2c_port, int sda_pin, int scl_pin);
+  SensorReading(i2c_port_t i2c_port,
+  int sda_pin, 
+  int scl_pin);
 
   esp_err_t begin();
   void startTask(); // start background reader task
   QueueHandle_t getQueue() const { return data_queue; }
 
 private:
-  int _i2c_port, _sda_pin, _scl_pin;
+  i2c_port_t _i2c_port;
+  int _sda_pin;
+  int _scl_pin;
 
-  const float accel_sensitivity = 16384.0f; // default ±2g
-  const float gyro_sensitivity = 131.0f;    // default ±250 deg/s
+  float accel_sensitivity = 16384.0f; // default ±2g
+  float gyro_sensitivity = 131.0f;    // default ±250 deg/s
 
   QueueHandle_t data_queue;
 
