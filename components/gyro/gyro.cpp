@@ -13,15 +13,15 @@ SensorReading::SensorReading(
       _sda_pin(sda_pin),
       _scl_pin(scl_pin)
        {}
-
 esp_err_t SensorReading::begin() {
-  i2c_config_t cfg = {}
-    .mode = I2C_MODE_MASTER,
-    .sda_io_num = _sda_pin,
-    .scl_io_num = _scl_pin,
-    .sda_pullup_en = GPIO_PULLUP_ENABLE,
-    .scl_pullup_en = GPIO_PULLUP_ENABLE,
-    .master = {.clk_speed = 400000};
+  i2c_config_t cfg = {}; // zero everything
+
+  cfg.mode = I2C_MODE_MASTER;
+  cfg.sda_io_num = _sda_pin;
+  cfg.scl_io_num = _scl_pin;
+  cfg.sda_pullup_en = GPIO_PULLUP_ENABLE;
+  cfg.scl_pullup_en = GPIO_PULLUP_ENABLE;
+  cfg.master.clk_speed = 400000;
 
   ESP_ERROR_CHECK(i2c_param_config(_i2c_port, &cfg));
   ESP_ERROR_CHECK(i2c_driver_install(_i2c_port, cfg.mode, 0, 0, 0));

@@ -4,7 +4,8 @@ idf_component_register(
     SRCS
         "main.cpp"
         "gpio_pin.cpp"
+        "jump.cpp"
        
     INCLUDE_DIRS "."
-    REQUIRES gyro esp_lcd display driver
+    REQUIRES gyro esp_lcd display driver esp_timer
 )
