@@ -25,15 +25,19 @@ public:
 
     void drawChar(int x, int y, char c);
     void drawString(int x, int y, const char *str);
+    void drawMainMenu();
+    void drawJumps(uint64_t jumps);
+    void drawTimer(uint64_t cur_time);
+    void drawCalories(uint16_t cals);
 
-private:
+  private:
     void initI2C();
     void drawCharInternal(int x, int y, char c);
 
     i2c_port_t _i2c_port;
-    int _sda_pin;
-    int _scl_pin;
-    uint8_t _i2c_addr;
+    const int _sda_pin;
+    const int _scl_pin;
+    const uint8_t _i2c_addr;
 
     esp_lcd_panel_io_handle_t _io;
     esp_lcd_panel_handle_t _panel;

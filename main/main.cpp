@@ -10,13 +10,14 @@
 #include "mutex.h"
 #include "gyro.h"
 #include "jump.h"
+#include "display.h"
 
-SensorReading gyro(I2C_NUM_0, 21, 22); // i2c_port, sda_pin, scl_pin
+SensorReading gyro(I2C_NUM_0, 21, 22);
 JumpDetector jumpDetector(&gyro);
+OledDisplay display(I2C_NUM_1, 30, 31, 0x55);
 
 extern "C" void app_main() {
   gyro.begin();
-
   // Jump detection task
   xTaskCreate(
       [](void *) {
@@ -26,16 +27,14 @@ extern "C" void app_main() {
         }
       },
       "JumpDetectTask", 2048, nullptr, 5, nullptr);
-
-  // Task that handles jumps (display, logging, cloud)
   xTaskCreate(
       [](void *) {
         uint32_t timestamp;
         while (true) {
           if (jumpDetector.getJump(timestamp, portMAX_DELAY)) {
             printf("Jump detected at %lu ms\n", timestamp);
-            // TODO: update display, send to cloud, etc.
           }
+          display.drawMainMenu();
         }
       },
       "JumpHandlerTask", 2048, nullptr, 5, nullptr);

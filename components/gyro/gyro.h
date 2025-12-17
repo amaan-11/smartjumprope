@@ -23,8 +23,8 @@ public:
 
 private:
   i2c_port_t _i2c_port;
-  int _sda_pin;
-  int _scl_pin;
+  const int _sda_pin;
+  const int _scl_pin;
 
   float accel_sensitivity = 16384.0f; // default ±2g
   float gyro_sensitivity = 131.0f;    // default ±250 deg/s

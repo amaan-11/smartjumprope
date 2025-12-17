@@ -118,3 +118,33 @@ void OledDisplay::drawCharInternal(int x, int y, char c) {
         }
     }
 }
+
+void OledDisplay::drawMainMenu(){
+    clear();
+    commit();
+    drawString(0, 0, "jump"); 
+    drawString(20, 20, "time");
+    drawString(35, 40, "calories");
+    commit();
+}
+
+void OledDisplay::drawJumps (const uint64_t jumps){
+  clear();
+  commit();
+  drawString(10, 10, "jump"); //OledDisplay::drawChar(20, 20, jumps)
+}
+
+void OledDisplay::drawTimer(const uint64_t cur_time) {
+  // Add session time here that is keptup 
+  clear();
+  commit();
+  drawString(30, 30, "time");
+  //OledDisplay::drawChar(40, 40, time)
+}
+
+void OledDisplay::drawCalories(const uint16_t cals) {
+  clear();
+  commit();
+  drawString(50, 50, "calories");
+  //OledDisplay::drawChar(60, 60, cals)
+}
