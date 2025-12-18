@@ -14,6 +14,8 @@ SensorReading::SensorReading(
       _scl_pin(scl_pin)
        {}
 esp_err_t SensorReading::begin() {
+
+  
   i2c_config_t cfg = {}; // zero everything
 
   cfg.mode = I2C_MODE_MASTER;
@@ -26,17 +28,31 @@ esp_err_t SensorReading::begin() {
   ESP_ERROR_CHECK(i2c_param_config(_i2c_port, &cfg));
   ESP_ERROR_CHECK(i2c_driver_install(_i2c_port, cfg.mode, 0, 0, 0));
 
+  // In begin(), before the wake command:
+  for (uint8_t addr = 1; addr < 127; addr++) {
+    esp_err_t ret = i2c_master_write_to_device(_i2c_port, addr, NULL, 0, 100);
+    if (ret == ESP_OK) {
+      ESP_LOGI(TAG, "Found device at address 0x%02X", addr);
+    }
+  }
+
   // Wake the chip
   uint8_t wake[2] = {0x6B, 0x00};
-  ESP_ERROR_CHECK(
-      i2c_master_write_to_device(_i2c_port, MPU_ADDR, wake, 2, 100));
+
+  esp_err_t err = i2c_master_write_to_device(_i2c_port, MPU_ADDR, wake, 2, 100);
+  if (err != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to wake MPU: %s", esp_err_to_name(err));
+    return err;
+  }
 
   readSensitivity();
+
 
   data_queue = xQueueCreate(10, sizeof(mpu_data_t));
 
   return ESP_OK;
 }
+
 
 void SensorReading::readSensitivity() {
   uint8_t a_cfg, g_cfg;
@@ -67,7 +83,7 @@ void SensorReading::readSensitivity() {
   switch (g_range) {
   case 0:
     gyro_sensitivity = 131.0f;
-    break;
+    break;1
   case 1:
     gyro_sensitivity = 65.5f;
     break;

@@ -2,6 +2,9 @@
 #include "esp_timer.h"
 #include <algorithm>
 
+//I (922) MPU: Accel sensitivity: 16384.000000
+//I (922) MPU: Gyro sensitivity: 131.000000
+
 JumpDetector::JumpDetector(SensorReading *gyro, float thresholdFactor,
                            uint32_t minIntervalMs)
     : _gyro(gyro), _avgJump(20.0f), _thresholdFactor(thresholdFactor),
