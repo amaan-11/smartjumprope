@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+        <title>b</title>
+        <link rel="stylesheet" href="webApp.css">
+</head>
+<body>
+	<div class="header-img">
+		<img src="/pics/jumping_man.png" alt="" width="227" height="323">
+	</div>
+
+	<form class="login-section" id="login" method="POST">
+		
+		<label for="em">SIGN IN WITH EMAIL</label>
+		<input type="email" id="em" name="em" required>
+		<label for="psw">PASSWORD</label>
+    	<input type="password" id="psw" name="psw" required>
+
+		<input type="submit" value="Sign in">
+	</form>
+
+	<script>
+    document.getElementById('id').addEventListener('submit', function(event) {
+        event.preventDefault();
+        document.getElementById('em').value;
+		document.getElementById('psw').value;
+    })
+	</script>
+</body>
+</html>
