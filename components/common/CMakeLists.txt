@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
 idf_component_register(
-    SRCS "gyro.cpp"
     INCLUDE_DIRS "."
-    REQUIRES driver i2cInit common
+
+REQUIRES
+        i2cInit driver esp_lcd
 )

@@ -1,8 +1,11 @@
 #pragma once
 
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
+#include "driver/i2c_slave.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+
+constexpr uint8_t MPU_ADDR = 0x68;
 
 typedef struct {
   float ax_g, ay_g, az_g;
@@ -11,26 +14,23 @@ typedef struct {
 
 class SensorReading {
 public:
-  SensorReading(i2c_port_t i2c_port,
-  int sda_pin, 
-  int scl_pin);
+  SensorReading(); // Auto-initializes on construction
 
-  esp_err_t begin();
   void startTask(); // start background reader task
   QueueHandle_t getQueue() const { return data_queue; }
   esp_err_t readRaw(int16_t &ax, int16_t &ay, int16_t &az, int16_t &gx,
                     int16_t &gy, int16_t &gz);
 
-private:
-  i2c_port_t _i2c_port;
-  const int _sda_pin;
-  const int _scl_pin;
+  bool isInitialized() const { return _initialized; }
 
+private:
+  bool _initialized;
   float accel_sensitivity = 16384.0f; // default ±2g
   float gyro_sensitivity = 131.0f;    // default ±250 deg/s
 
   QueueHandle_t data_queue;
 
+  void init();
   void readSensitivity(); // reads ACCEL_CONFIG, GYRO_CONFIG
   void taskLoop();        // background task
 

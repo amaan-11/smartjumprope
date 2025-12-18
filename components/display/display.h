@@ -8,21 +8,12 @@
 #include "esp_lcd_panel_ssd1306.h"
 #include "esp_lcd_panel_vendor.h"
 #include <cstdint>
-#include "driver/i2c.h"
-#include "esp_err.h"
-#include "esp_lcd_io_i2c.h"
-#include "esp_lcd_panel_io.h"
-#include "esp_lcd_panel_ops.h"
-#include "esp_lcd_panel_ssd1306.h"
-#include "esp_lcd_panel_vendor.h"
-#include <cstdint>
+
+constexpr uint8_t DISPLAY_ADDR = 0x3C;
 
 class OledDisplay {
 public:
-  OledDisplay(i2c_port_t i2c_port, int sda_pin, int scl_pin,
-              uint8_t i2c_addr = 0x3C);
-
-  esp_err_t init();
+  OledDisplay(); // Auto-initializes on construction
 
   void clear();
   void commit();
@@ -34,14 +25,14 @@ public:
   void drawTimer(uint64_t cur_time);
   void drawCalories(uint16_t cals);
 
+  bool isInitialized() const { return _initialized; }
+
 private:
-  esp_err_t initI2C();
+  void init();
   void cleanup();
   void drawCharInternal(int x, int y, char c);
 
-  i2c_port_t _i2c_port;
-  const int _sda_pin;
-  const int _scl_pin;
+  bool _initialized;
   const uint8_t _i2c_addr;
 
   esp_lcd_panel_io_handle_t _io;
