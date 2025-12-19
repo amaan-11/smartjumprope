@@ -138,23 +138,30 @@ void OledDisplay::drawString(int x, int y, const char *str) {
 }
 
 void OledDisplay::drawCharInternal(int x, int y, char c) {
-  if (c < 32 || c > 127)
-    return;
-  const uint8_t *glyph = font5x7[c - 32];
+  if (c < 0 || c > 127) return;
 
-  for (int col = 0; col < 5; col++) {
-    uint8_t line = glyph[col];
-    for (int row = 0; row < 7; row++) {
-      if (line & (1 << row)) {
-        int px = x + col;
-        int py = y + row;
-        if (px < 0 || px >= WIDTH || py < 0 || py >= HEIGHT)
-          continue;
+  const uint8_t* glyph = (const uint8_t*)font8x8_basic[(unsigned char)c];
 
-        int index = px + (py / 8) * WIDTH;
-        _framebuffer[index] |= (1 << (py % 8));
+  // Loop over 8 rows (like console)
+  for (int row = 0; row < 8; row++) {
+      uint8_t byte = glyph[row]; // row data
+
+      // Loop over 8 columns (left to right = bit 0 to bit 7)
+      for (int col = 0; col < 8; col++) {
+          if ((byte >> col) & 1) { // LSB = leftmost → col 0
+              int px = x + col;    // horizontal position
+              int py = y + row;    // vertical position
+
+              // Bounds check
+              if (px < 0 || px >= WIDTH || py < 0 || py >= HEIGHT)
+                  continue;
+
+              // Write to vertical-mode framebuffer
+              int byteIndex = px + (py / 8) * WIDTH;
+              int bitIndex  = py % 8;
+              _framebuffer[byteIndex] |= (1 << bitIndex);
+          }
       }
-    }
   }
 }
 
