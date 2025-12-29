@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-        <title>b</title>
+        <title>Jumping Man</title>
         <link rel="stylesheet" href="webApp.css">
 </head>
 <body>
@@ -32,6 +32,15 @@
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(data)
+		})
+
+		.then(response => {
+			if (response.redirected) {
+				window.location.href = response.url;
+			}  
+			else {
+				window.location.href = '/';
+			}
 		})
     })
 	</script>
