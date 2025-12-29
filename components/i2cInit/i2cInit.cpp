@@ -12,35 +12,22 @@ constexpr uint32_t I2C_FREQ_HZ = 400000;
 I2CManager::I2CManager()
     : _i2c_port(I2C_PORT), _sda_pin(I2C_SDA_PIN), _scl_pin(I2C_SCL_PIN),
       _clk_speed(I2C_FREQ_HZ), _initialized(false), _mutex(nullptr) {
-  _mutex = xSemaphoreCreateMutex();
-  if (_mutex == nullptr) {
-    ESP_LOGE(TAG, "Failed to create mutex");
-    return;
   }
 
-  // Auto-initialize on construction
-  init();
-}
-
-I2CManager::~I2CManager() {
-  if (_initialized) {
-    i2c_driver_delete(_i2c_port);
-  }
-  if (_mutex) {
-    vSemaphoreDelete(_mutex);
-  }
-}
+I2CManager::~I2CManager() = default;
 
 I2CManager &I2CManager::getInstance() {
   static I2CManager instance;
   return instance;
 }
-
 void I2CManager::init() {
   if (_initialized) {
-    ESP_LOGW(TAG, "I2C initialized");
+    ESP_LOGW(TAG, "I2C already initialized");
     return;
   }
+
+  _mutex = xSemaphoreCreateMutex();
+  assert(_mutex != nullptr);
 
   i2c_config_t conf = {};
   conf.mode = I2C_MODE_MASTER;

@@ -138,7 +138,7 @@ void OledDisplay::drawString(int x, int y, const char *str) {
 }
 
 void OledDisplay::drawCharInternal(int x, int y, char c) {
-  if (c < 0 || c > 127) return;
+  if (c > 127) return;
 
   const uint8_t* glyph = (const uint8_t*)font8x8_basic[(unsigned char)c];
 

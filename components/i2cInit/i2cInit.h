@@ -22,6 +22,7 @@ public:
   I2CManager(const I2CManager &) = delete;
   I2CManager &operator=(const I2CManager &) = delete;
 
+  void init();
 private:
   I2CManager();
   ~I2CManager();
@@ -34,5 +35,4 @@ private:
 
   SemaphoreHandle_t _mutex;
 
-  void init();
 };
