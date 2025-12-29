@@ -16,6 +16,7 @@ OledDisplay::OledDisplay()
 
 void OledDisplay::init() {
   I2CManager &i2c = I2CManager::getInstance();
+  initSSD1306(); // NEW
 
   if (!i2c.isInitialized()) {
     ESP_LOGE(TAG, "I2C Manager not initialized!");
@@ -111,62 +112,74 @@ void OledDisplay::cleanup() {
 void OledDisplay::clear() { memset(_framebuffer, 0x00, sizeof(_framebuffer)); }
 
 void OledDisplay::commit() {
-  if (!_initialized || !_panel) {
+  if (!_initialized)
     return;
-  }
+
+  uint8_t col_cmd[] = {0x21, 0, uint8_t(WIDTH - 1)};
+  uint8_t page_cmd[] = {0x22, 0, uint8_t(HEIGHT / 8 - 1)};
+  sendCommand(col_cmd[0]);
+  sendCommand(col_cmd[1]);
+  sendCommand(col_cmd[2]);
+  sendCommand(page_cmd[0]);
+  sendCommand(page_cmd[1]);
+  sendCommand(page_cmd[2]);
+
+  // Prepend 0x40 control byte for data
+  uint8_t buf[WIDTH * HEIGHT / 8 + 1];
+  buf[0] = 0x40;
+  memcpy(buf + 1, _framebuffer, WIDTH * HEIGHT / 8);
 
   I2CManager &i2c = I2CManager::getInstance();
-
-  {
-    MutexGuard lock(i2c.getMutex());
-    // ESP_LOGD(TAG, "[DISPLAY] Acquired I2C lock for commit");
-
-    esp_lcd_panel_draw_bitmap(_panel, 0, 0, WIDTH, HEIGHT, _framebuffer);
-
-    // ESP_LOGD(TAG, "[DISPLAY] Released I2C lock");
+  MutexGuard lock(i2c.getMutex());
+  esp_err_t ret = i2c_master_write_to_device(i2c.getPort(), _i2c_addr, buf,
+                                             sizeof(buf), pdMS_TO_TICKS(1000));
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "I2C write failed: %s", esp_err_to_name(ret));
   }
 }
-
 void OledDisplay::drawChar(int x, int y, char c) { drawCharInternal(x, y, c); }
 
 void OledDisplay::drawString(int x, int y, const char *str) {
   int cursor = x;
   while (*str) {
     drawCharInternal(cursor, y, *str++);
-    cursor += 6; // 5px font + 1px space
+    cursor += 8; // 5px font + 1px space
   }
 }
 
 void OledDisplay::drawCharInternal(int x, int y, char c) {
-  if (c > 127) return;
+  if (c < 0 || c > 127)
+    return;
 
-  const uint8_t* glyph = (const uint8_t*)font8x8_basic[(unsigned char)c];
+  const uint8_t *glyph =
+      reinterpret_cast<const uint8_t *>(font8x8_basic[(uint8_t)c]);
 
-  // Loop over 8 rows (like console)
   for (int row = 0; row < 8; row++) {
-      uint8_t byte = glyph[row]; // row data
+    uint8_t rowBits = glyph[row];
 
-      // Loop over 8 columns (left to right = bit 0 to bit 7)
-      for (int col = 0; col < 8; col++) {
-          if ((byte >> col) & 1) { // LSB = leftmost → col 0
-              int px = x + col;    // horizontal position
-              int py = y + row;    // vertical position
+    for (int col = 0; col < 8; col++) {
+      if (rowBits & (1 << (7 - col))) { // FIXED bit order
+        int px = x + col;
+        int py = y + row;
 
-              // Bounds check
-              if (px < 0 || px >= WIDTH || py < 0 || py >= HEIGHT)
-                  continue;
+        if (px < 0 || px >= WIDTH || py < 0 || py >= HEIGHT)
+          continue;
 
-              // Write to vertical-mode framebuffer
-              int byteIndex = px + (py / 8) * WIDTH;
-              int bitIndex  = py % 8;
-              _framebuffer[byteIndex] |= (1 << bitIndex);
-          }
+        int index = px + (py / 8) * WIDTH;
+        _framebuffer[index] |= (1 << (py % 8));
       }
+    }
   }
 }
 
 void OledDisplay::drawMainMenu() {
   clear();
+  drawString(0, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+  drawString(0, 16, "abcdefghijklmnopqrstuvwxyz");
+  drawString(0, 32, "0123456789");
+  drawString(0, 48, "!@#$%^&*()");
+  commit();
+
   drawString(0, 0, "jump");
   drawString(20, 20, "time");
   drawString(35, 40, "calories");
@@ -189,4 +202,44 @@ void OledDisplay::drawCalories(const uint16_t cals) {
   clear();
   drawString(50, 50, "calories");
   commit();
+}
+
+void OledDisplay::sendCommand(uint8_t cmd) {
+  uint8_t buf[2] = {0x80, cmd}; // Control byte = command
+
+  I2CManager &i2c = I2CManager::getInstance();
+  MutexGuard lock(i2c.getMutex());
+
+  esp_err_t ret = i2c_master_write_to_device(i2c.getPort(), _i2c_addr, buf,
+                                             sizeof(buf), pdMS_TO_TICKS(1000));
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "I2C write failed: %s", esp_err_to_name(ret));
+  }
+}
+
+void OledDisplay::initSSD1306() {
+  // Basic SSD1306 initialization sequence
+  sendCommand(0xAE); // Display off
+  sendCommand(0x20);
+  sendCommand(0x00); // Memory mode = horizontal
+  sendCommand(0x40); // Start line = 0
+  sendCommand(0xA1); // Segment remap
+  sendCommand(0xC8); // COM scan direction remapped
+  sendCommand(0xA8);
+  sendCommand(HEIGHT - 1); // Multiplex ratio
+  sendCommand(0xD3);
+  sendCommand(0x00); // Display offset
+  sendCommand(0xDA);
+  sendCommand(0x12); // COM pins
+  sendCommand(0x81);
+  sendCommand(0xFF); // Contrast
+  sendCommand(0xD9);
+  sendCommand(0xF1); // Pre-charge
+  sendCommand(0xDB);
+  sendCommand(0x30); // VCOMH deselect
+  sendCommand(0xA4); // Entire display on follow RAM
+  sendCommand(0xA6); // Normal display
+  sendCommand(0x8D);
+  sendCommand(0x14); // Charge pump
+  sendCommand(0xAF); // Display on
 }

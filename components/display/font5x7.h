@@ -1,4 +1,5 @@
 #pragma once
+
 #include <cstdint>
 
 constexpr int FONT_WIDTH  = 8;

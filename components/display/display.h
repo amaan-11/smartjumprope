@@ -28,6 +28,8 @@ public:
   bool isInitialized() const { return _initialized; }
 
 private:
+  void sendCommand(uint8_t cmd);
+  void initSSD1306();
   void init();
   void cleanup();
   void drawCharInternal(int x, int y, char c);

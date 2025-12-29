@@ -43,6 +43,7 @@ extern "C" void app_main() {
   display.drawString(10, 20, "OLED I2C TEST");
   display.drawString(10, 35, "Display only");
   display.commit();
+  
   vTaskDelay(pdMS_TO_TICKS(2000));
 
   printf("\n========================================\n");
