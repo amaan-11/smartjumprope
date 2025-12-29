@@ -12,19 +12,27 @@
 
 	<form class="login-section" id="login" method="POST">
 		
-		<label for="em">SIGN IN WITH EMAIL</label>
-		<input type="email" id="em" name="em" required>
-		<label for="psw">PASSWORD</label>
-    	<input type="password" id="psw" name="psw" required>
+		<label for="username">SIGN IN WITH USERNAME</label>
+		<input type="text" id="username" name="username" required>
+		<label for="user_id">USER ID</label>
+    	<input type="text" id="user_id" name="user_id" required>
 
 		<input type="submit" value="Sign in">
 	</form>
 
 	<script>
-    document.getElementById('id').addEventListener('submit', function(event) {
+    document.getElementById('login').addEventListener('submit', function(event) {
         event.preventDefault();
-        document.getElementById('em').value;
-		document.getElementById('psw').value;
+        const username = document.getElementById('username').value;
+		const user_id = document.getElementById('user_id').value;
+
+		const data = { username: username, user_id: user_id };
+
+		fetch('/login', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		})
     })
 	</script>
 </body>
