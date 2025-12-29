@@ -24,24 +24,26 @@ public:
   void drawJumps(uint64_t jumps);
   void drawTimer(uint64_t cur_time);
   void drawCalories(uint16_t cals);
+  void drawCharFlipped(int x, int y, char c);
+  void drawStringFlipped(int x, int y, const char *str);
+    void testTextOrientations();
+    bool isInitialized() const { return _initialized; }
 
-  bool isInitialized() const { return _initialized; }
+  private:
+    void sendCommand(uint8_t cmd);
+    void initSSD1306();
+    void init();
+    void cleanup();
+    void drawCharInternal(int x, int y, char c);
 
-private:
-  void sendCommand(uint8_t cmd);
-  void initSSD1306();
-  void init();
-  void cleanup();
-  void drawCharInternal(int x, int y, char c);
+    bool _initialized;
+    const uint8_t _i2c_addr;
 
-  bool _initialized;
-  const uint8_t _i2c_addr;
+    esp_lcd_panel_io_handle_t _io;
+    esp_lcd_panel_handle_t _panel;
 
-  esp_lcd_panel_io_handle_t _io;
-  esp_lcd_panel_handle_t _panel;
+    static constexpr int WIDTH = 128;
+    static constexpr int HEIGHT = 64;
 
-  static constexpr int WIDTH = 128;
-  static constexpr int HEIGHT = 64;
-
-  uint8_t _framebuffer[WIDTH * HEIGHT / 8];
-};
+    uint8_t _framebuffer[WIDTH * HEIGHT / 8];
+  };

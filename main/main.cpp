@@ -3,7 +3,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include <cstdio>
-
 #include "display.h"
 #include "i2cInit.h"
 
@@ -14,12 +13,7 @@ static const char *TAG = "MAIN";
 extern "C" void app_main() {
 
   I2CManager &i2c = I2CManager::getInstance();
-  i2c.init(); // ✅ scheduler is alive now
-
-  printf("\n========================================\n");
-  printf("OLED Display I2C Test (NO GYRO)\n");
-  printf("========================================\n\n");
-
+  i2c.init();
 
   if (!i2c.isInitialized()) {
     ESP_LOGE(TAG, "I2C Manager failed to initialize!");
@@ -40,15 +34,14 @@ extern "C" void app_main() {
 
   // Startup screen
   display.clear();
-  display.drawString(10, 20, "OLED I2C TEST");
-  display.drawString(10, 35, "Display only");
+  display.drawStringFlipped(10, 20, "World, Hello!");
   display.commit();
-  
-  vTaskDelay(pdMS_TO_TICKS(2000));
+  vTaskDelay(pdMS_TO_TICKS(5000));
+  display.clear();
+  display.drawStringFlipped(10, 20, "!Hello, world!");
+  display.commit();
 
-  printf("\n========================================\n");
-  printf("Starting DISPLAY-ONLY I2C test...\n");
-  printf("========================================\n\n");
+  vTaskDelay(pdMS_TO_TICKS(2000));
 
   // Task 1: Display update task
   xTaskCreate(
@@ -57,19 +50,12 @@ extern "C" void app_main() {
         int counter = 0;
 
         while (true) {
-          printf("[DISPLAY] Update #%d\n", counter);
-
           display->clear();
-          display->drawString(5, 5, "OLED I2C Test");
-
-          char buf[32];
-          snprintf(buf, sizeof(buf), "Count: %d", counter);
-          display->drawString(5, 25, buf);
-
+          display->drawStringFlipped(5, 5, "OLED I2C Test");
           display->commit();
 
           counter++;
-          vTaskDelay(pdMS_TO_TICKS(500));
+          vTaskDelay(pdMS_TO_TICKS(5000));
         }
       },
       "DisplayTask", 4096,
