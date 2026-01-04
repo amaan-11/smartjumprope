@@ -16,7 +16,7 @@ OledDisplay::OledDisplay()
 
 void OledDisplay::init() {
   I2CManager &i2c = I2CManager::getInstance();
-  initSSD1306(); // NEW
+  initSSD1306();
 
   if (!i2c.isInitialized()) {
     ESP_LOGE(TAG, "I2C Manager not initialized!");
@@ -137,49 +137,9 @@ void OledDisplay::commit() {
     ESP_LOGE(TAG, "I2C write failed: %s", esp_err_to_name(ret));
   }
 }
-void OledDisplay::drawChar(int x, int y, char c) { drawCharInternal(x, y, c); }
-
-void OledDisplay::drawString(int x, int y, const char *str) {
-  int cursor = x;
-  while (*str) {
-    drawCharInternal(cursor, y, *str++);
-    cursor += 8; // 5px font + 1px space
-  }
-}
-
-void OledDisplay::drawCharInternal(int x, int y, char c) {
-  if (c < 0 || c > 127)
-    return;
-
-  const uint8_t *glyph =
-      reinterpret_cast<const uint8_t *>(font8x8_basic[(uint8_t)c]);
-
-  for (int row = 0; row < 8; row++) {
-    uint8_t rowBits = glyph[row];
-
-    for (int col = 0; col < 8; col++) {
-      if (rowBits & (1 << (7 - col))) { // FIXED bit order
-        int px = x + col;
-        int py = y + row;
-
-        if (px < 0 || px >= WIDTH || py < 0 || py >= HEIGHT)
-          continue;
-
-        int index = px + (py / 8) * WIDTH;
-        _framebuffer[index] |= (1 << (py % 8));
-      }
-    }
-  }
-}
 
 void OledDisplay::drawMainMenu() {
   clear();
-  drawString(0, 0, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-  drawString(0, 16, "abcdefghijklmnopqrstuvwxyz");
-  drawString(0, 32, "0123456789");
-  drawString(0, 48, "!@#$%^&*()");
-  commit();
-
   drawString(0, 0, "jump");
   drawString(20, 20, "time");
   drawString(35, 40, "calories");
@@ -244,53 +204,7 @@ void OledDisplay::initSSD1306() {
   sendCommand(0xAF); // Display on
 }
 
-void OledDisplay::testTextOrientations() {
-  const char *testStr = "b d p q";
-
-  // Possible hardware configs
-  struct Config {
-    uint8_t segRemap;
-    uint8_t comScan;
-    const char *name;
-  } configs[] = {
-      {0xA0, 0xC0, "Normal"},
-      {0xA0, 0xC8, "Vertical flip"},
-      {0xA1, 0xC0, "Horizontal flip"},
-      {0xA1, 0xC8, "Both flips"},
-  };
-
-  // Optional: also test vertical bit-flip in framebuffer
-  bool flipBitsOptions[] = {false, true};
-
-  for (auto &cfg : configs) {
-    for (bool flipBits : flipBitsOptions) {
-      clear();
-
-      // Apply hardware config
-      sendCommand(cfg.segRemap);
-      sendCommand(cfg.comScan);
-
-      // Draw string with optional bit flip
-      int cursor = 0;
-      while (*testStr) {
-        if (flipBits) {
-          drawCharFlipped(cursor, 0, *testStr++);
-        } else {
-          drawCharInternal(cursor, 0, *testStr++);
-        }
-        cursor += 8;
-      }
-
-      commit();
-
-      ESP_LOGI("OLED_TEST", "Displayed with %s, flipBits=%d", cfg.name,
-               flipBits);
-
-      vTaskDelay(pdMS_TO_TICKS(2000)); // pause 2s to see
-    }
-  }
-}
-void OledDisplay::drawCharFlipped(int x, int y, char c) {
+void OledDisplay::drawChar(int x, int y, char c) {
   if (c < 0 || c > 127)
     return;
 
@@ -321,10 +235,10 @@ void OledDisplay::drawCharFlipped(int x, int y, char c) {
 }
 
 // Draw a full string with flipped characters
-void OledDisplay::drawStringFlipped(int x, int y, const char *str) {
+void OledDisplay::drawString(int x, int y, const char *str) {
   int cursor = x;
   while (*str) {
-    drawCharFlipped(cursor, y, *str); // pass single char
+    drawChar(cursor, y, *str); // pass single char
     cursor += 8;                      // advance cursor by font width + spacing
     str++;
   }

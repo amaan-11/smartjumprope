@@ -24,9 +24,6 @@ public:
   void drawJumps(uint64_t jumps);
   void drawTimer(uint64_t cur_time);
   void drawCalories(uint16_t cals);
-  void drawCharFlipped(int x, int y, char c);
-  void drawStringFlipped(int x, int y, const char *str);
-    void testTextOrientations();
     bool isInitialized() const { return _initialized; }
 
   private:
@@ -34,7 +31,6 @@ public:
     void initSSD1306();
     void init();
     void cleanup();
-    void drawCharInternal(int x, int y, char c);
 
     bool _initialized;
     const uint8_t _i2c_addr;

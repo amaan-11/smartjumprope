@@ -28,9 +28,9 @@ static const char *TAG = "MAIN";
         snprintf(line3, sizeof(line3), "GZ: %6.1f", data.gz_dps);
 
         display->clear();
-        display->drawStringFlipped(0, 0, line1);
-        display->drawStringFlipped(0, 16, line2);
-        display->drawStringFlipped(0, 32, line3);
+        display->drawString(0, 0, line1);
+        display->drawString(0, 16, line2);
+        display->drawString(0, 32, line3);
         display->commit();
       }
     }
@@ -51,8 +51,6 @@ static const char *TAG = "MAIN";
     gyro.startTask();
 
     xTaskCreate(displayTask, "display_task", 4096, &display, 4, nullptr);
-
-    // app_main MUST NOT return
     while (true) {
       vTaskDelay(portMAX_DELAY);
     }
