@@ -5,46 +5,55 @@
 #include <cstdio>
 #include "display.h"
 #include "i2cInit.h"
+#include"gyro.h"
 
 static const char *TAG = "MAIN";
 
-extern "C" void app_main() {
-  I2CManager &i2c = I2CManager::getInstance();
-  i2c.init();
+  void displayTask(void *param) {
+    auto *display = static_cast<OledDisplay *>(param);
 
-  if (!i2c.isInitialized()) {
-    ESP_LOGE(TAG, "I2C Manager failed to initialize!");
-    return;
+    SensorReading &gyro = SensorReading::getInstance(); // or pass pointer
+    QueueHandle_t q = gyro.getQueue();
+
+    mpu_data_t data;
+
+    char line1[32];
+    char line2[32];
+    char line3[32];
+
+    while (true) {
+      if (xQueueReceive(q, &data, pdMS_TO_TICKS(500))) {
+        snprintf(line1, sizeof(line1), "GX: %6.1f", data.gx_dps);
+        snprintf(line2, sizeof(line2), "GY: %6.1f", data.gy_dps);
+        snprintf(line3, sizeof(line3), "GZ: %6.1f", data.gz_dps);
+
+        display->clear();
+        display->drawStringFlipped(0, 0, line1);
+        display->drawStringFlipped(0, 16, line2);
+        display->drawStringFlipped(0, 32, line3);
+        display->commit();
+      }
+    }
   }
+  extern "C" void app_main() {
+    I2CManager &i2c = I2CManager::getInstance();
+    i2c.init();
 
-  static OledDisplay display;  // ✅ STATIC, NOT STACK
-  // Startup screen
-  display.clear();
-  display.drawStringFlipped(10, 20, "World, Hello!");
-  display.commit();
-  vTaskDelay(pdMS_TO_TICKS(5000));
-  display.clear();
-  display.drawStringFlipped(10, 20, "!Hello, world!");
-  display.commit();
+    if (!i2c.isInitialized()) {
+      ESP_LOGE(TAG, "I2C Manager failed to initialize!");
+      return;
+    }
 
-  xTaskCreate(
-      [](void *param) {
-        auto *display = static_cast<OledDisplay *>(param);
-        while (true) {
-          display->clear();
-          display->drawStringFlipped(5, 5, "OLED I2C Test");
-          display->commit();
-          vTaskDelay(pdMS_TO_TICKS(5000));
-        }
-      },
-      "DisplayTask",
-      4096,
-      &display,
-      4,
-      nullptr);
+    static OledDisplay display; // OK
+    display.clear();
 
-  // KEEP app_main alive
-  while (true) {
-    vTaskDelay(portMAX_DELAY);
+    SensorReading &gyro = SensorReading::getInstance();
+    gyro.startTask();
+
+    xTaskCreate(displayTask, "display_task", 4096, &display, 4, nullptr);
+
+    // app_main MUST NOT return
+    while (true) {
+      vTaskDelay(portMAX_DELAY);
+    }
   }
-}
