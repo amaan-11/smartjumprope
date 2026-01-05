@@ -3,13 +3,16 @@ const app = express();
 const path = require('path');
 const port = 3000;
 
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/webApp.html');
-});
 
+//If .html not index!
+/*
+app.get('/', (req, res) => {
+   // res.sendFile(path.join(__dirname, '../public/webApp.html'));
+});
+*/
 
 app.post('/login', (req, res) => {
     const { username, user_id } = req.body;
@@ -18,20 +21,18 @@ app.post('/login', (req, res) => {
     const n = "daniel";
     const u = "2";
     if (username === n && user_id === u) {
-        res.redirect('/data/' + encodeURIComponent(username));
+        res.redirect('/user-data/rope');
     }
     else {
         res.redirect('/');
-    }
+    } 
 
     //res.sendFile(__dirname + '/data.html');
 });
 
-app.get('/data/:username', (req, res) => {
-    const username = req.params.username;
-    console.log(username);
+app.get('/user-data/rope', (req, res) => {
 
-    res.sendFile(path.join(__dirname, 'data.html'));
+    res.sendFile(path.join(__dirname, '../public/data.html'));
 });
 
 
