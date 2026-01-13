@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+        <title>Jumping Man</title>
+        <link rel="stylesheet" href="webApp.css">
+</head>
+<body>
+	<div class="header-img">
+		<img src="/pics/jumping_man.png" alt="" width="227" height="323">
+	</div>
+
+	<form class="login-section" id="login" method="POST">
+		
+		<label for="username">SIGN IN WITH USERNAME</label>
+		<input type="text" id="username" name="username" required>
+		<label for="user_id">USER ID</label>
+    	<input type="text" id="user_id" name="user_id" required>
+
+		<input type="submit" value="Sign in">
+	</form>
+
+	<script>
+    document.getElementById('login').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+		const user_id = document.getElementById('user_id').value;
+
+		const data = { username: username, user_id: user_id };
+
+		fetch('/login', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		})
+
+		.then(response => {
+			if (response.redirected) {
+				window.location.href = response.url;
+			}  
+			else {
+				window.location.href = '/';
+			}
+		})
+    })
+	</script>
+</body>
+</html>
