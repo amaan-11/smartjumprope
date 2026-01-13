@@ -2,14 +2,36 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-        <title>Data</title>
-        <link rel="stylesheet" href="/data.css">
+	<title>Jump Rope Data</title>
+	<link rel="stylesheet" href="/data.css">
 </head>
 <body>
-	<div class="data">
-		 <b>Hyvää kamaa</b> 
-	</div>
 
+<h1>Smart Jump Rope</h1>
+
+<div class="data">
+	<b>Hyvää kamaa</b>
+</div>
+
+<!-- Bluetooth status -->
+<div id="bleStatus">Disconnected</div>
+
+<!-- Bluetooth controls -->
+<div class="controls">
+	<button id="btnConnect">Connect Bluetooth</button>
+	<button id="btnStart" disabled>Start</button>
+	<button id="btnStop" disabled>Stop</button>
+</div>
+
+<!-- Live data -->
+<div class="data">
+	<p><strong>Jump count:</strong> <span id="jumpCount">0</span></p>
+	<p><strong>Heart rate:</strong> <span id="heartRate">-</span> bpm</p>
+	<p><strong>Acceleration:</strong> <span id="accelMag">0</span></p>
+</div>
+
+<!-- Browser-side Bluetooth logic -->
+<script src="/ble.js"></script>
 
 </body>
 </html>
