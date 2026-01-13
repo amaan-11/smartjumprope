@@ -1,57 +1,87 @@
+#include "display.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <cstdio>
-#include "display.h"
+#include "gyro.h"
 #include "i2cInit.h"
-#include"gyro.h"
+#include "max30102.h" // Include your MAX30102 driver
+#include <cstdio>
 
 static const char *TAG = "MAIN";
 
-  void displayTask(void *param) {
-    auto *display = static_cast<OledDisplay *>(param);
+// Display task for gyro readings
+void displayTask(void *param) {
+  auto *display = static_cast<OledDisplay *>(param);
+  SensorReading &gyro = SensorReading::getInstance(); // or pass pointer
+  QueueHandle_t q = gyro.getQueue();
 
-    SensorReading &gyro = SensorReading::getInstance(); // or pass pointer
-    QueueHandle_t q = gyro.getQueue();
+  mpu_data_t data;
+  char line1[32];
+  char line2[32];
+  char line3[32];
 
-    mpu_data_t data;
+  while (true) {
+    if (xQueueReceive(q, &data, pdMS_TO_TICKS(500))) {
+      snprintf(line1, sizeof(line1), "GX: %6.1f", data.gx_dps);
+      snprintf(line2, sizeof(line2), "GY: %6.1f", data.gy_dps);
+      snprintf(line3, sizeof(line3), "GZ: %6.1f", data.gz_dps);
 
-    char line1[32];
-    char line2[32];
-    char line3[32];
-
-    while (true) {
-      if (xQueueReceive(q, &data, pdMS_TO_TICKS(500))) {
-        snprintf(line1, sizeof(line1), "GX: %6.1f", data.gx_dps);
-        snprintf(line2, sizeof(line2), "GY: %6.1f", data.gy_dps);
-        snprintf(line3, sizeof(line3), "GZ: %6.1f", data.gz_dps);
-
-        display->clear();
-        display->drawString(0, 0, line1);
-        display->drawString(0, 16, line2);
-        display->drawString(0, 32, line3);
-        display->commit();
-      }
+      display->clear();
+      display->drawString(0, 0, line1);
+      display->drawString(0, 16, line2);
+      display->drawString(0, 32, line3);
+      display->commit();
     }
   }
-  extern "C" void app_main() {
-    I2CManager &i2c = I2CManager::getInstance();
-    i2c.init();
+}
 
-    if (!i2c.isInitialized()) {
-      ESP_LOGE(TAG, "I2C Manager failed to initialize!");
-      return;
-    }
+// Heart rate task (reads MAX30102 FIFO)
+void heartRateTask(void *param) {
+  (void)param;
 
-    static OledDisplay display; // OK
-    display.clear();
-
-    SensorReading &gyro = SensorReading::getInstance();
-    gyro.startTask();
-
-    xTaskCreate(displayTask, "display_task", 4096, &display, 4, nullptr);
-    while (true) {
-      vTaskDelay(portMAX_DELAY);
-    }
+  if (!maxim_max30102_init()) {
+    ESP_LOGE(TAG, "MAX30102 failed to initialize!");
+    vTaskDelete(nullptr);
+    return;
   }
+
+  ESP_LOGI(TAG, "MAX30102 initialized");
+
+  while (true) {
+    uint32_t red, ir;
+    esp_err_t ret = maxim_max30102_read_fifo(&red, &ir);
+    if (ret == ESP_OK) {
+      // For now just print raw LED values; later can implement BPM algorithm
+      ESP_LOGI(TAG, "PPG Red: %lu, IR: %lu", red, ir);
+    } else {
+      ESP_LOGW(TAG, "Failed to read MAX30102 FIFO");
+    }
+    vTaskDelay(pdMS_TO_TICKS(100)); // Read ~10 times per second
+  }
+}
+
+extern "C" void app_main() {
+  I2CManager &i2c = I2CManager::getInstance();
+  i2c.init();
+
+  if (!i2c.isInitialized()) {
+    ESP_LOGE(TAG, "I2C Manager failed to initialize!");
+    return;
+  }
+
+  static OledDisplay display;
+  display.clear();
+
+  // Start gyro task
+  SensorReading &gyro = SensorReading::getInstance();
+  gyro.startTask();
+  xTaskCreate(displayTask, "display_task", 4096, &display, 4, nullptr);
+
+  // Start heart rate task
+  xTaskCreate(heartRateTask, "heart_rate_task", 4096, nullptr, 5, nullptr);
+
+  while (true) {
+    vTaskDelay(portMAX_DELAY);
+  }
+}
