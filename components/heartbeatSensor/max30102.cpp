@@ -168,7 +168,8 @@ bool maxim_max30102_reset()
 bool maxim_max30102_read_temperature(int8_t *integer_part, uint8_t *fractional_part)
 {
     maxim_max30102_write_reg(REG_TEMP_CONFIG, 0x01);
-    ets_delay_us(30);
+    esp_rom_delay_us(30);
+
 
     uint8_t temp;
     maxim_max30102_read_reg(REG_TEMP_INTR, &temp);

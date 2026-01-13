@@ -3,9 +3,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
 #include "esp_err.h"
 #include "driver/i2c.h"
+
+#define I2C_WRITE_ADDR 0x57
+#define I2C_READ_ADDR  0x57
 
 /* I2C address (7-bit, ESP-IDF format) */
 #define MAX30102_I2C_ADDR 0x57
