@@ -6,7 +6,7 @@
 #include "gyro.h"
 #include "i2cInit.h"
 #include "max30102.h"
-#include "jr_ble.h"          // <<< BLE module
+#include "jr_ble.h"
 #include <cstdio>
 
 static const char *TAG = "MAIN";
@@ -57,7 +57,7 @@ void heartRateTask(void *param) {
     uint32_t red, ir;
     esp_err_t ret = maxim_max30102_read_fifo(&red, &ir);
     if (ret == ESP_OK) {
-      ESP_LOGI(TAG, "PPG Red: %lu, IR: %lu", red, ir);
+      ESP_LOGI(TAG, "PPG Red: %lu, IR: %lu", (unsigned long)red, (unsigned long)ir);
     } else {
       ESP_LOGW(TAG, "Failed to read MAX30102 FIFO");
     }
@@ -68,9 +68,9 @@ void heartRateTask(void *param) {
 // --------------------------------------------------
 // BLE demo feed task (temporary test data)
 // --------------------------------------------------
-static volatile uint32_t g_jump_count = 0;
-static volatile uint8_t  g_hr_bpm     = 0;
-static volatile uint16_t g_accel_mag  = 0;
+static uint32_t g_jump_count = 0;
+static uint8_t  g_hr_bpm     = 0;
+static uint16_t g_accel_mag  = 0;
 
 void bleFeedTask(void *param) {
   (void)param;
@@ -112,9 +112,7 @@ extern "C" void app_main() {
   // Start heart rate task
   xTaskCreate(heartRateTask, "heart_rate_task", 4096, nullptr, 5, nullptr);
 
-  // --------------------------------------------------
   // Start BLE
-  // --------------------------------------------------
   jr_ble_init();
   xTaskCreate(bleFeedTask, "ble_feed_task", 4096, nullptr, 5, nullptr);
 

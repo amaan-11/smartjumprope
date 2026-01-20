@@ -16,24 +16,37 @@
 
 static const char *TAG = "JR_BLE";
 
-// UUIDs must match your webapp ble.js
-static const ble_uuid128_t JR_SVC_UUID  = BLE_UUID128_INIT(
-    0x6e,0x40,0x00,0x01,0xb5,0xa3,0xf3,0x93,0xe0,0xa9,0xe5,0x0e,0x24,0xdc,0xca,0x9e
-);
+/*
+IMPORTANT:
+NimBLE's BLE_UUID128_INIT() expects UUID bytes in LITTLE-ENDIAN order (reversed)
+compared to the human-readable UUID string.
+
+Your web app uses:
+6e400001-b5a3-f393-e0a9-e50e24dcca9e
+
+So here we must store it reversed.
+*/
+static const ble_uuid128_t JR_SVC_UUID = BLE_UUID128_INIT(
+    0x9e, 0xca, 0xdc, 0x24, 0x0e, 0xe5, 0xa9, 0xe0,
+    0x93, 0xf3, 0xa3, 0xb5, 0x01, 0x00, 0x40, 0x6e);
+
 static const ble_uuid128_t JR_CTRL_UUID = BLE_UUID128_INIT(
-    0x6e,0x40,0x00,0x02,0xb5,0xa3,0xf3,0x93,0xe0,0xa9,0xe5,0x0e,0x24,0xdc,0xca,0x9e
-);
+    0x9e, 0xca, 0xdc, 0x24, 0x0e, 0xe5, 0xa9, 0xe0,
+    0x93, 0xf3, 0xa3, 0xb5, 0x02, 0x00, 0x40, 0x6e);
+
 static const ble_uuid128_t JR_DATA_UUID = BLE_UUID128_INIT(
-    0x6e,0x40,0x00,0x03,0xb5,0xa3,0xf3,0x93,0xe0,0xa9,0xe5,0x0e,0x24,0xdc,0xca,0x9e
-);
+    0x9e, 0xca, 0xdc, 0x24, 0x0e, 0xe5, 0xa9, 0xe0,
+    0x93, 0xf3, 0xa3, 0xb5, 0x03, 0x00, 0x40, 0x6e);
+
+static uint8_t own_addr_type = 0;
 
 static uint16_t g_conn_handle = BLE_HS_CONN_HANDLE_NONE;
 static uint16_t g_data_val_handle = 0;
 
-static volatile bool     g_streaming  = false;
-static volatile uint32_t g_jump_count = 0;
-static volatile uint8_t  g_hr_bpm     = 0;
-static volatile uint16_t g_accel_mag  = 0;
+static bool g_streaming = false;
+static uint32_t g_jump_count = 0;
+static uint8_t g_hr_bpm = 0;
+static uint16_t g_accel_mag = 0;
 
 static void start_advertising(void);
 
@@ -67,9 +80,15 @@ static int ctrl_access_cb(uint16_t, uint16_t, ble_gatt_access_ctxt *ctxt, void *
 
     if (ble_hs_mbuf_to_flat(ctxt->om, &cmd, sizeof(cmd), nullptr) != 0) return BLE_ATT_ERR_UNLIKELY;
 
-    if (cmd == 0x01) { g_streaming = true;  ESP_LOGI(TAG, "Streaming START"); }
-    else if (cmd == 0x00) { g_streaming = false; ESP_LOGI(TAG, "Streaming STOP"); }
-    else { ESP_LOGW(TAG, "Unknown cmd 0x%02X", cmd); }
+    if (cmd == 0x01) {
+        g_streaming = true;
+        ESP_LOGI(TAG, "Streaming START");
+    } else if (cmd == 0x00) {
+        g_streaming = false;
+        ESP_LOGI(TAG, "Streaming STOP");
+    } else {
+        ESP_LOGW(TAG, "Unknown cmd 0x%02X", cmd);
+    }
 
     return 0;
 }
@@ -80,45 +99,70 @@ static int data_access_cb(uint16_t, uint16_t, ble_gatt_access_ctxt *ctxt, void *
 
     uint8_t pkt[12];
     uint32_t ts = (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
-    build_packet(pkt, ts, (uint32_t)g_jump_count, (uint8_t)g_hr_bpm, (uint16_t)g_accel_mag, 0x01);
+    build_packet(pkt, ts, g_jump_count, g_hr_bpm, g_accel_mag, 0x01);
 
     return (os_mbuf_append(ctxt->om, pkt, sizeof(pkt)) == 0) ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
 }
 
+/*
+To silence the "missing initializer" warnings in C++,
+we fully initialize every field (including the terminator entries).
+Also: we avoid C++ designated initializers, because order matters and can hard-error.
+*/
 static ble_gatt_chr_def gatt_chars[] = {
+    // Control characteristic (write)
     {
-        /* .uuid */      (ble_uuid_t *)&JR_CTRL_UUID,
-        /* .access_cb */ ctrl_access_cb,
-        /* .arg */       nullptr,
-        /* .descriptors */ nullptr,
-        /* .flags */     BLE_GATT_CHR_F_WRITE,
-        /* .min_key_size */ 0,
-        /* .val_handle */ nullptr,
-        /* .cpfd */      nullptr
+        (ble_uuid_t *)&JR_CTRL_UUID,  // uuid
+        ctrl_access_cb,               // access_cb
+        nullptr,                      // arg
+        nullptr,                      // descriptors
+        BLE_GATT_CHR_F_WRITE,         // flags
+        0,                            // min_key_size
+        nullptr,                      // val_handle
+        nullptr                       // cpfd
     },
+
+    // Data characteristic (notify + read)
     {
-        /* .uuid */      (ble_uuid_t *)&JR_DATA_UUID,
-        /* .access_cb */ data_access_cb,
-        /* .arg */       nullptr,
-        /* .descriptors */ nullptr,
-        /* .flags */     (uint16_t)(BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ),
-        /* .min_key_size */ 0,
-        /* .val_handle */ &g_data_val_handle,
-        /* .cpfd */      nullptr
+        (ble_uuid_t *)&JR_DATA_UUID,                              // uuid
+        data_access_cb,                                           // access_cb
+        nullptr,                                                  // arg
+        nullptr,                                                  // descriptors
+        (uint16_t)(BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ),   // flags
+        0,                                                        // min_key_size
+        &g_data_val_handle,                                       // val_handle
+        nullptr                                                   // cpfd
     },
-    { 0 } // terminator
+
+    // Terminator
+    {
+        nullptr,   // uuid
+        nullptr,   // access_cb
+        nullptr,   // arg
+        nullptr,   // descriptors
+        0,         // flags
+        0,         // min_key_size
+        nullptr,   // val_handle
+        nullptr    // cpfd
+    }
 };
 
 static const ble_gatt_svc_def gatt_svcs[] = {
     {
-        /* .type */ BLE_GATT_SVC_TYPE_PRIMARY,
-        /* .uuid */ (ble_uuid_t *)&JR_SVC_UUID,
-        /* .includes */ nullptr,
-        /* .characteristics */ gatt_chars
+        BLE_GATT_SVC_TYPE_PRIMARY,      // type
+        (ble_uuid_t *)&JR_SVC_UUID,     // uuid
+        nullptr,                        // includes
+        gatt_chars                      // characteristics
     },
-    { 0 } // terminator
-};
 
+    // Terminator
+    {
+        0,        // type
+        nullptr,  // uuid
+        nullptr,  // includes
+        nullptr   // characteristics
+    }
+};
 
 static int gap_event_cb(ble_gap_event *event, void *) {
     switch (event->type) {
@@ -172,12 +216,19 @@ static void start_advertising(void) {
     adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
     adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
 
-    int rc = ble_gap_adv_start(BLE_OWN_ADDR_PUBLIC, nullptr, BLE_HS_FOREVER, &adv_params, gap_event_cb, nullptr);
+    int rc = ble_gap_adv_start(own_addr_type, nullptr, BLE_HS_FOREVER, &adv_params, gap_event_cb, nullptr);
     if (rc == 0) ESP_LOGI(TAG, "Advertising as '%s'", name);
     else ESP_LOGE(TAG, "adv_start rc=%d", rc);
 }
 
 static void ble_on_sync(void) {
+    // Pick a correct address type automatically (more reliable than forcing PUBLIC)
+    int rc = ble_hs_id_infer_auto(0, &own_addr_type);
+    if (rc != 0) {
+        ESP_LOGE(TAG, "ble_hs_id_infer_auto failed rc=%d", rc);
+        return;
+    }
+
     ble_svc_gap_device_name_set("JRope-C6");
     start_advertising();
 }
@@ -188,7 +239,7 @@ static void notify_task(void *) {
             uint8_t pkt[12];
             uint32_t ts = (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 
-            build_packet(pkt, ts, (uint32_t)g_jump_count, (uint8_t)g_hr_bpm, (uint16_t)g_accel_mag, 0x01);
+            build_packet(pkt, ts, g_jump_count, g_hr_bpm, g_accel_mag, 0x01);
 
             os_mbuf *om = ble_hs_mbuf_from_flat(pkt, sizeof(pkt));
             if (om) {
