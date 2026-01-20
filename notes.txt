@@ -1,0 +1,18 @@
+Need to keep track of the jumping profile of the user. This could be a local thing but ideall should be gotten from a network. And some recnet jumps would be saved in the NVS for faster and offline profiles.  
+
+
+I2C- driver notes:
+We realized that our first version of the I2C slave driver had some problems and was not easy to use, so we have prepared a second version of the I2C slave driver, which solves many of the problems with our current I2C slave and which will be the focus of our maintenance. We encourage and recommend that you use the second version of the I2C slave driver, which you can do by enabling CONFIG_I2C_ENABLE_SLAVE_DRIVER_VERSION_2. This document focuses on the content of I2C slave v2.0. If you still want to read programming guide of I2C slave v1.0, please refer to I2C Slave v1.0. The I2C slave v1.0 driver will be removed with the IDF v6.0 update.
+
+Calibration of the sensor. 
+
+[]make fonts readable.
+[]calibrate the gyro. 
+[]make the values of the gyro to show in the display. 
+[]make sure the jumping works.
+[]sends values to out of the system.
+[]make player profiles.
+[]save calib data .
+
+
+

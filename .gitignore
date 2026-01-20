@@ -1,5 +1,49 @@
+# Notes / docs
 notes.txt
 esp-docs.pdf
+/Smart_Rope.pdf
+
+# IDE / editor
 .idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+
+# Node / Web
 node_modules/
 npm-debug.log*
+
+# Build directories
+/build/
+/main/build/
+/components/*/build/
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+build.ninja
+*.ninja
+*.ninja.d
+
+# Flashing and log files
+*.bin
+*.elf
+*.map
+*.flasher_args.json
+*.flash_args
+*.flash_args.in
+*.project_description.json
+*.project_elf_src_*.c
+*.log
+
+# SDK configuration
+sdkconfig
+sdkconfig.old
+
+# Python virtual env / cache
+venv/
+.robotenv/
+__pycache__/

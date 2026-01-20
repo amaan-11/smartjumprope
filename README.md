@@ -19,3 +19,4 @@ deadline:	1.1.2026
 
 [Nischal]
 02.12 - Setting up the ESP-extension in V.S.code. Coding the beginning of reading the sensors.
+03.12 - Setting up the dev platform. 
