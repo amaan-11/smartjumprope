@@ -85,27 +85,40 @@ static int data_access_cb(uint16_t, uint16_t, ble_gatt_access_ctxt *ctxt, void *
     return (os_mbuf_append(ctxt->om, pkt, sizeof(pkt)) == 0) ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
 }
 
+static ble_gatt_chr_def gatt_chars[] = {
+    {
+        /* .uuid */      (ble_uuid_t *)&JR_CTRL_UUID,
+        /* .access_cb */ ctrl_access_cb,
+        /* .arg */       nullptr,
+        /* .descriptors */ nullptr,
+        /* .flags */     BLE_GATT_CHR_F_WRITE,
+        /* .min_key_size */ 0,
+        /* .val_handle */ nullptr,
+        /* .cpfd */      nullptr
+    },
+    {
+        /* .uuid */      (ble_uuid_t *)&JR_DATA_UUID,
+        /* .access_cb */ data_access_cb,
+        /* .arg */       nullptr,
+        /* .descriptors */ nullptr,
+        /* .flags */     (uint16_t)(BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ),
+        /* .min_key_size */ 0,
+        /* .val_handle */ &g_data_val_handle,
+        /* .cpfd */      nullptr
+    },
+    { 0 } // terminator
+};
+
 static const ble_gatt_svc_def gatt_svcs[] = {
     {
-        .type = BLE_GATT_SVC_TYPE_PRIMARY,
-        .uuid = (ble_uuid_t *)&JR_SVC_UUID,
-        .characteristics = (ble_gatt_chr_def[]) {
-            {
-                .uuid = (ble_uuid_t *)&JR_CTRL_UUID,
-                .access_cb = ctrl_access_cb,
-                .flags = BLE_GATT_CHR_F_WRITE,
-            },
-            {
-                .uuid = (ble_uuid_t *)&JR_DATA_UUID,
-                .access_cb = data_access_cb,
-                .val_handle = &g_data_val_handle,
-                .flags = BLE_GATT_CHR_F_NOTIFY | BLE_GATT_CHR_F_READ,
-            },
-            {0}
-        },
+        /* .type */ BLE_GATT_SVC_TYPE_PRIMARY,
+        /* .uuid */ (ble_uuid_t *)&JR_SVC_UUID,
+        /* .includes */ nullptr,
+        /* .characteristics */ gatt_chars
     },
-    {0}
+    { 0 } // terminator
 };
+
 
 static int gap_event_cb(ble_gap_event *event, void *) {
     switch (event->type) {
