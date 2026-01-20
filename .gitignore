@@ -1,3 +1,5 @@
 notes.txt
 esp-docs.pdf
 .idea/
+node_modules/
+npm-debug.log*
