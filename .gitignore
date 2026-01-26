@@ -47,3 +47,6 @@ sdkconfig.old
 venv/
 .robotenv/
 __pycache__/
+
+# Database files
+*.db
