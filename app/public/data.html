@@ -9,6 +9,24 @@
 
 <h1>Smart Jump Rope</h1>
 
+<h1 id="username"></h1>
+
+
+<script>
+	fetch('/api/me', { credentials: 'include' })
+  .then(res => {
+    if (!res.ok) throw new Error('Not authorized');
+    return res.json();
+  })
+  .then(data => {
+    document.getElementById('username').textContent = `Welcome, ${data.username}!`;
+  })
+  .catch(err => {
+    console.error(err);
+  });
+</script>
+
+
 <div class="data">
 	<b>Hyvää kamaa</b>
 </div>
