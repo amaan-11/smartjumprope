@@ -2,7 +2,8 @@
 cd 
 . ~/esp/esp-idf/export.sh
 cd ~/smartjumprope
+idf.py set-target esp32c6
 idf.py build
 idf.py -p /dev/ttyACM0 flash monitor
 #use ctrl+] to exit monitoring
-#idf.py set-target esp32c3
+
