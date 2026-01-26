@@ -48,5 +48,10 @@ venv/
 .robotenv/
 __pycache__/
 
+<<<<<<< Updated upstream
 # Database files
+=======
+# Database
+
+>>>>>>> Stashed changes
 *.db
