@@ -46,7 +46,8 @@ app.post('/login', (req, res) => {
 
 app.get('/user-data/rope', (req, res) => {
 
-    res.sendFile(path.join(__dirname, '../public/data.html'));
+    res.sendFile('data.html', { root: path.join(__dirname, '../public') });
+    //res.sendFile(path.join(__dirname, '../public/data.html'));
 });
 
 
