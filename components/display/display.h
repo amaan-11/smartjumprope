@@ -24,7 +24,7 @@ public:
   void drawJumps(uint64_t jumps);
   void drawTimer(uint64_t cur_time);
   void drawCalories(uint16_t cals);
-    bool isInitialized() const { return _initialized; }
+  bool isInitialized() const { return _initialized; }
 
   private:
     void sendCommand(uint8_t cmd);
