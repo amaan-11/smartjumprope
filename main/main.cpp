@@ -170,7 +170,7 @@ void buttonTask(void *param) {
 void initTask(void *param) {
   ESP_LOGI(TAG, "Starting initialization task");
 
-  // Now FreeRTOS is running, safe to create objects with mutexes
+  // Step 1: Initialize I2C Manager
   I2CManager &i2c = I2CManager::getInstance();
   i2c.init();
 
@@ -180,23 +180,37 @@ void initTask(void *param) {
     return;
   }
 
-  // Create display object
-  display = new OledDisplay();
-  display->clear();
+  ESP_LOGI(TAG, "I2C initialized");
 
-  // Create button object
+  // Step 2: Wait for I2C bus to stabilize
+  vTaskDelay(pdMS_TO_TICKS(100));
+
+  // Step 3: Create display (constructor calls init() internally)
+  ESP_LOGI(TAG, "Creating display...");
+  display = new OledDisplay();
+
+  // Step 4: CRITICAL - Wait for display init to complete
+  vTaskDelay(pdMS_TO_TICKS(150));
+
+  // Step 5: Initialize gyro singleton (constructor calls init() internally)
+  ESP_LOGI(TAG, "Initializing gyro...");
+  SensorReading &gyro = SensorReading::getInstance();
+
+  // Step 6: CRITICAL - Wait for gyro init to complete
+  vTaskDelay(pdMS_TO_TICKS(150));
+
+  // Step 7: Create button (no I2C, safe anytime)
+  ESP_LOGI(TAG, "Creating button...");
   modeButton =
       new GPIOPin(BUTTON_PIN, GPIOMode::INPUT, GPIOPull::PULLUP, false, 30);
 
   ESP_LOGI(TAG, "Initialization complete");
 
-  // Start in GYRO mode
+  // Step 8: Start application tasks
   xTaskCreate(gyroDisplayTask, "gyro_task", 4096, nullptr, 5, &gyroTaskHandle);
-
-  // Button always active
   xTaskCreate(buttonTask, "button_task", 2048, nullptr, 6, nullptr);
 
-  // Delete init task - no longer needed
+  // Step 9: Delete init task
   vTaskDelete(nullptr);
 }
 

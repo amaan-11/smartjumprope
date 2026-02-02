@@ -61,7 +61,7 @@
 *******************************************************************************
 */
 #include "max30102.h"
-#include "algorithm.h"
+#include "algorithm_by_RF.h"
 
 esp_err_t maxim_max30102_write_reg(uint8_t reg, uint8_t val)
 {
