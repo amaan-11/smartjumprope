@@ -2,7 +2,8 @@
 
 Repository for IOT Project at Metropolia University of Applied Sciences.
 
-Front Page: https://amaan-11.github.io/smartjumprope/
+Front Page: https://amaan-11.github.io/smartjumprope
+
 Data Page: https://amaan-11.github.io/smartjumprope/data.html
 
 To-Do 1
