@@ -47,3 +47,15 @@ sdkconfig.old
 venv/
 .robotenv/
 __pycache__/
+<<<<<<< HEAD
+=======
+
+# OS / editor files
+.DS_Store
+*.swp
+*.swo
+
+#Node
+node_modules/
+
+>>>>>>> nischal

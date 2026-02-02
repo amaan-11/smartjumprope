@@ -1,4 +1,3 @@
-
 #include "max30102_settings.h"
 #include "max30102.h"
 
