@@ -1,0 +1,13 @@
+
+body {
+        background-color: #222222;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        -webkit-text-stroke: 1px #d3d3d3;
+        color: #cccccc;
+        font-size: 22px; 
+}
+
