@@ -1,14 +1,17 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
-#include "i2cInit.h"
 
 #include "display.h"
 #include "gpio_pin.h"
-#include "gyro.h"
+#include "i2cInit.h"
 
 #include "algorithm_by_RF.h"
 #include "max30102.h"
+
+#include "jr_ble.h"
+#include "mutex.h"
 
 #include <cstdio>
 
@@ -28,40 +31,12 @@ static const char *TAG = "MAIN";
 static OledDisplay *display = nullptr;
 static GPIOPin *modeButton = nullptr;
 
-static TaskHandle_t gyroTaskHandle = nullptr;
-static TaskHandle_t hrTaskHandle = nullptr;
-
-enum class DisplayMode { GYRO, HEART };
-
-static DisplayMode currentMode = DisplayMode::GYRO;
-
-/* =========================
-   GYRO TASK
-   ========================= */
-
-void gyroDisplayTask(void *param) {
-  SensorReading &gyro = SensorReading::getInstance();
-  QueueHandle_t q = gyro.getQueue();
-
-  mpu_data_t data;
-  char l1[32], l2[32], l3[32];
-
-  gyro.startTask();
-
-  while (true) {
-    if (xQueueReceive(q, &data, pdMS_TO_TICKS(200))) {
-      snprintf(l1, sizeof(l1), "AX: %5.2f g", data.ax_g);
-      snprintf(l2, sizeof(l2), "AY: %5.2f g", data.ay_g);
-      snprintf(l3, sizeof(l3), "AZ: %5.2f g", data.az_g);
-
-      display->clear();
-      display->drawString(0, 0, l1);
-      display->drawString(0, 16, l2);
-      display->drawString(0, 32, l3);
-      display->commit();
-    }
-  }
-}
+/* Shared data (protected) */
+static SemaphoreHandle_t dataMutex = nullptr;
+static uint8_t latest_hr = 0;
+static uint8_t latest_spo2 = 0;
+static bool hr_valid = false;
+static bool spo2_valid = false;
 
 /* =========================
    HEART RATE TASK
@@ -76,8 +51,6 @@ void heartRateTask(void *param) {
   float spo2;
   int8_t hrValid, spo2Valid;
   float ratio, correl;
-
-  char line1[32], line2[32];
 
   maxim_max30102_init();
 
@@ -94,72 +67,68 @@ void heartRateTask(void *param) {
                                             &spo2, &spo2Valid, &heartRate,
                                             &hrValid, &ratio, &correl);
 
-        display->clear();
+        {
+          MutexGuard lock(dataMutex);
 
-        if (hrValid) {
-          snprintf(line1, sizeof(line1), "HR: %ld BPM", heartRate);
-        } else {
-          snprintf(line1, sizeof(line1), "HR: --");
+          if (hrValid && heartRate > 0 && heartRate < 255) {
+            latest_hr = (uint8_t)heartRate;
+            hr_valid = true;
+          }
+
+          if (spo2Valid && spo2 >= 0 && spo2 <= 100) {
+            latest_spo2 = (uint8_t)spo2;
+            spo2_valid = true;
+          }
+
+          /* Feed BLE with latest known values */
+          jr_ble_set_values(latest_hr, latest_spo2);
         }
-
-        if (spo2Valid) {
-          snprintf(line2, sizeof(line2), "SpO2: %.1f%%", spo2);
-        } else {
-          snprintf(line2, sizeof(line2), "SpO2: --");
-        }
-
-        display->drawString(0, 0, line1);
-        display->drawString(0, 16, line2);
-        display->commit();
 
         idx = 0;
       }
     }
 
-    vTaskDelay(pdMS_TO_TICKS(40)); // ~25Hz
+    vTaskDelay(pdMS_TO_TICKS(40)); // ~25 Hz sampling
   }
 }
 
 /* =========================
-   BUTTON TASK
+   DISPLAY TASK
    ========================= */
 
-void buttonTask(void *param) {
+void displayTask(void *param) {
+  char line1[32];
+  char line2[32];
+
   while (true) {
-    modeButton->update();
+    uint8_t hr, spo2;
+    bool hrOk, spo2Ok;
 
-    if (modeButton->pressed()) {
-      if (currentMode == DisplayMode::GYRO) {
-        ESP_LOGI(TAG, "Switching to HEART mode");
-
-        if (gyroTaskHandle) {
-          vTaskDelete(gyroTaskHandle);
-          gyroTaskHandle = nullptr;
-        }
-
-        maxim_max30102_init();
-        xTaskCreate(heartRateTask, "heart_rate_task", 4096, nullptr, 5,
-                    &hrTaskHandle);
-
-        currentMode = DisplayMode::HEART;
-
-      } else {
-        ESP_LOGI(TAG, "Switching to GYRO mode");
-
-        if (hrTaskHandle) {
-          vTaskDelete(hrTaskHandle);
-          hrTaskHandle = nullptr;
-        }
-
-        maxim_max30102_init();
-        xTaskCreate(gyroDisplayTask, "gyro_task", 4096, nullptr, 5,
-                    &gyroTaskHandle);
-
-        currentMode = DisplayMode::GYRO;
-      }
+    {
+      MutexGuard lock(dataMutex);
+      hr = latest_hr;
+      spo2 = latest_spo2;
+      hrOk = hr_valid;
+      spo2Ok = spo2_valid;
     }
 
-    vTaskDelay(pdMS_TO_TICKS(10));
+    display->clear();
+
+    if (hrOk)
+      snprintf(line1, sizeof(line1), "HR: %u BPM", hr);
+    else
+      snprintf(line1, sizeof(line1), "HR: --");
+
+    if (spo2Ok)
+      snprintf(line2, sizeof(line2), "SpO2: %u %%", spo2);
+    else
+      snprintf(line2, sizeof(line2), "SpO2: --");
+
+    display->drawString(0, 0, line1);
+    display->drawString(0, 16, line2);
+    display->commit();
+
+    vTaskDelay(pdMS_TO_TICKS(500)); // 2 Hz UI refresh
   }
 }
 
@@ -168,49 +137,31 @@ void buttonTask(void *param) {
    ========================= */
 
 void initTask(void *param) {
-  ESP_LOGI(TAG, "Starting initialization task");
+  ESP_LOGI(TAG, "Initialization start");
 
-  // Step 1: Initialize I2C Manager
+  /* Mutex */
+  dataMutex = xSemaphoreCreateMutex();
+  configASSERT(dataMutex != nullptr);
+
+  /* I2C */
   I2CManager &i2c = I2CManager::getInstance();
   i2c.init();
+  configASSERT(i2c.isInitialized());
 
-  if (!i2c.isInitialized()) {
-    ESP_LOGE(TAG, "I2C init failed");
-    vTaskDelete(nullptr);
-    return;
-  }
-
-  ESP_LOGI(TAG, "I2C initialized");
-
-  // Step 2: Wait for I2C bus to stabilize
   vTaskDelay(pdMS_TO_TICKS(100));
 
-  // Step 3: Create display (constructor calls init() internally)
-  ESP_LOGI(TAG, "Creating display...");
+  /* Display */
   display = new OledDisplay();
-
-  // Step 4: CRITICAL - Wait for display init to complete
   vTaskDelay(pdMS_TO_TICKS(150));
 
-  // Step 5: Initialize gyro singleton (constructor calls init() internally)
-  ESP_LOGI(TAG, "Initializing gyro...");
-  SensorReading &gyro = SensorReading::getInstance();
+  /* BLE */
+  jr_ble_init();
 
-  // Step 6: CRITICAL - Wait for gyro init to complete
-  vTaskDelay(pdMS_TO_TICKS(150));
-
-  // Step 7: Create button (no I2C, safe anytime)
-  ESP_LOGI(TAG, "Creating button...");
-  modeButton =
-      new GPIOPin(BUTTON_PIN, GPIOMode::INPUT, GPIOPull::PULLUP, false, 30);
+  /* Tasks */
+  xTaskCreate(heartRateTask, "hr_task", 4096, nullptr, 5, nullptr);
+  xTaskCreate(displayTask, "display_task", 3072, nullptr, 4, nullptr);
 
   ESP_LOGI(TAG, "Initialization complete");
-
-  // Step 8: Start application tasks
-  xTaskCreate(gyroDisplayTask, "gyro_task", 4096, nullptr, 5, &gyroTaskHandle);
-  xTaskCreate(buttonTask, "button_task", 2048, nullptr, 6, nullptr);
-
-  // Step 9: Delete init task
   vTaskDelete(nullptr);
 }
 
@@ -218,11 +169,7 @@ void initTask(void *param) {
    APP MAIN
    ========================= */
 
-extern "C" void app_main() {
-  ESP_LOGI(TAG, "Starting app_main");
-
-  // Create initialization task and let it handle everything
-  // This ensures FreeRTOS scheduler is running before creating mutex-using
-  // objects
-  xTaskCreate(initTask, "init_task", 4096, nullptr, 5, nullptr);
+extern "C" void app_main(void) {
+  ESP_LOGI(TAG, "app_main");
+  xTaskCreate(initTask, "init_task", 4096, nullptr, 6, nullptr);
 }
