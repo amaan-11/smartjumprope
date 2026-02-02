@@ -71,12 +71,24 @@ body {
   transition: all 0.2s ease;
 }
 
+
 .login-section input:not([type="submit"]):focus {
   outline: none;
   border-color: #555;
   background-color: #222;
 }
 
+.login-section button {
+        margin-top: 10px;
+	color: #222222;
+	background-color: #d3d3d3;
+        display: block; 
+        flex-shrink: 0;
+        width: 11%;
+        font-size: 16px;
+}
+
+#create_account_btn,
 input[type="submit"] {
   background-color: #1a1a1a;
   color: #fff;
@@ -122,4 +134,33 @@ input[type="submit"]:disabled {
 /* Remove tap highlight on mobile */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+.popup {
+    display: none; /* скрыт по умолчанию */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border: 2px solid black;
+    z-index: 1000;
+
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.popup.show {
+    display: flex;
+}
+
+.popup p {
+    margin: 0;
+}
+
+.popup button {
+    padding: 5px 10px;
+    cursor: pointer;
 }

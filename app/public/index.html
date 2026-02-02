@@ -17,10 +17,21 @@
     	<input type="text" id="user_id" name="user_id" required>
 
 		<input type="submit" value="Sign in">
+		<button type="button" id="create_account_btn">Create Account</button>
 	</form>
 
+	<div class="popup" id="popup">
+    <p>Invalid username or user ID</p>
+    <button id="closePopup">Close</button>
+	</div>
+
 	<script>
-    document.getElementById('login').addEventListener('submit', function(event) {
+
+		const popup = document.getElementById('popup');
+		const closeBtn = document.getElementById('closePopup');
+
+
+    	document.getElementById('login').addEventListener('submit', function(event) {
         event.preventDefault();
         const username = document.getElementById('username').value;
 		const user_id = document.getElementById('user_id').value;
@@ -37,11 +48,24 @@
 			if (response.redirected) {
 				window.location.href = response.url;
 			}  
-			else {
-				window.location.href = '/';
+			else if(!response.ok){
+				popup.classList.add('show');
 			}
+
 		})
+
     })
-	</script>
+	closeBtn.addEventListener('click', () => {
+    	popup.classList.remove('show');
+    	window.location.href = '/';
+	});
+
+	const create_account_btn = document.getElementById('create_account_btn');
+
+	create_account_btn.addEventListener('click', () => {
+    window.location.href = '/account_cr.html'; 
+	});
+
+	</script> 
 </body>
 </html>

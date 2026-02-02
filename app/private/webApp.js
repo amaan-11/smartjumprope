@@ -37,7 +37,7 @@ app.post('/login', (req, res) => {
         res.redirect('/user-data/rope');
     }
     else {
-        res.redirect('/');
+        res.status(401).json({ error: "Invalid credentials" });
     } 
 
     //res.sendFile(__dirname + '/data.html');
@@ -58,7 +58,7 @@ function authMiddleware(req, res, next) {
   next();
 }
 
-app.get('/api/me', authMiddleware, (req, res) => {
+app.get('/data/user', authMiddleware, (req, res) => {
   const user = req.session.user;
 
   res.json({
