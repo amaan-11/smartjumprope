@@ -13,7 +13,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.5rem;
+  padding: 3rem;
   font-size: 16px;
 }
 
@@ -35,6 +35,8 @@ body {
   object-fit: contain;
 }
 
+
+.new-user-section,
 .login-section {
   display: flex;
   flex-direction: column;
@@ -48,6 +50,7 @@ body {
   padding: 2rem 1.5rem;
 }
 
+.new-user-section label,
 .login-section label {
   margin-bottom: 0.5rem;
   color: #fff;
@@ -58,6 +61,7 @@ body {
   text-align: left;
 }
 
+.new-user-section input:not([type="submit"]),
 .login-section input:not([type="submit"]) {
   margin-bottom: 1.5rem;
   color: #fff;
@@ -71,21 +75,22 @@ body {
   transition: all 0.2s ease;
 }
 
-
+.new-user-section input:not([type="submit"]):focus,
 .login-section input:not([type="submit"]):focus {
   outline: none;
   border-color: #555;
   background-color: #222;
 }
 
+.new-user-section button,
 .login-section button {
-        margin-top: 10px;
+  margin-top: 10px;
 	color: #222222;
 	background-color: #d3d3d3;
-        display: block; 
-        flex-shrink: 0;
-        width: 11%;
-        font-size: 16px;
+  display: block; 
+  flex-shrink: 0;
+  width: 11%;
+  font-size: 16px;
 }
 
 #create_account_btn,
@@ -123,7 +128,7 @@ input[type="submit"]:disabled {
   }
   
   .header-img {
-    margin-top: 3rem;
+    margin-top: 0.1rem;
   }
   
   .login-section {
@@ -137,7 +142,7 @@ input[type="submit"]:disabled {
 }
 
 .popup {
-    display: none; /* скрыт по умолчанию */
+    display: none;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -157,6 +162,7 @@ input[type="submit"]:disabled {
 }
 
 .popup p {
+    color: #0a0a0a;
     margin: 0;
 }
 

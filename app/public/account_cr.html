@@ -3,9 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <title>Greeting</title>
+    <link rel="stylesheet" href="webApp.css">
 </head>
 <body>
-    <h1>Hello, world!</h1>
-    <p>Welcome to the page.</p>
+    <form class="new-user-section" id="new_user" method="POST">
+		
+		<label for="new_username">ENTER USERNAME</label>
+		<input type="text" id="new_username" name="new_username" required>
+		<label for="new_user_id">ENTER USER ID</label>
+    	<input type="text" id="new_user_id" name="new_user_id" required>
+
+		<input type="submit" value="Create Account">
+	</form>
+
+    <script>
+        document.getElementById('new_user').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('new_username').value;
+		    const user_id = document.getElementById('new_user_id').value;
+
+		    const data = { username: username, user_id: user_id };
+
+		    fetch('/new_user', {
+			    method: 'POST',
+			    headers: { 'Content-Type': 'application/json' },
+			    body: JSON.stringify(data)
+		    })
+
+		    .then(response => {
+			    if (response.redirected) {
+				    window.location.href = response.url;
+			    }  
+			    else if(!response.ok){
+				    //popup.classList.add('show');
+			    }
+
+		    })
+
+        })
+    </script>
 </body>
 </html>

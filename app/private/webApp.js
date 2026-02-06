@@ -24,6 +24,30 @@ app.get('/', (req, res) => {
 });
 */
 
+
+//account creation
+app.post('/new_user', (req, res) => {
+    const { username, user_id } = req.body;
+    console.log(username, user_id);
+
+    const n = "daniel";
+    const u = "2";
+    if (username === n && user_id === u) {
+
+        req.session.user = { username: n };
+
+        res.redirect('/user-data/rope');
+    }
+    else {
+        res.status(401).json({ error: "Invalid credentials" });
+    } 
+
+    //res.sendFile(__dirname + '/data.html');
+});
+
+
+
+
 app.post('/login', (req, res) => {
     const { username, user_id } = req.body;
     console.log(username, user_id);
@@ -44,6 +68,8 @@ app.post('/login', (req, res) => {
 });
 
 
+
+//signed user part
 app.get('/user-data/rope', (req, res) => {
 
     //res.sendFile('data.html', { root: path.join(__dirname, '../public') });
@@ -65,6 +91,8 @@ app.get('/data/user', authMiddleware, (req, res) => {
     username: user.username,
   });
 });
+
+
 
 
 app.listen(port, () => {
