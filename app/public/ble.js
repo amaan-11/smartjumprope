@@ -96,16 +96,22 @@ function initBLE() {
     if (btnStart) btnStart.addEventListener("click", () => startStreaming().catch(e => setStatus(String(e))));
 
     if (btnStop) {
-        btnStop.addEventListener("click", () => {
-            stopStreaming().catch(e => setStatus(String(e)));
+        btnStop.addEventListener("click", async () => {
+            try {
+                await stopStreaming(); 
 
-            const jump_counts = document.getElementById('jumpCount');
-            const hr = document.getElementById('heartRate');
-            const acceleration = document.getElementById('accelMag');
+                const jump_counts = document.getElementById('jumpCount');
+                const hr = document.getElementById('heartRate');
+                const acceleration = document.getElementById('accelMag');
 
-            if (jump_counts) jump_counts.value = "0";
-            if (hr) hr.value = "-";
-            if (acceleration) acceleration.value = "0";
+                if (jump_counts) jump_counts.value = "0";
+                if (hr) hr.value = "-";
+                if (acceleration) acceleration.value = "0";
+            }
+            catch (e) {
+                setStatus(String(e));
+            }
+
         });
     }
     /*if (btnStop) {
