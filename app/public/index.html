@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+        <title>Jumping Man</title>
+        <link rel="stylesheet" href="webApp.css">
+</head>
+<body>
+	<div class="header-img">
+		<img src="pics/jumping_man.png" alt="" width="227" height="323">
+	</div>
+	<form class="login-section" id="login" method="POST">
+		
+		<label for="username">SIGN IN WITH USERNAME</label>
+		<input type="text" id="username" name="username" required>
+		<label for="user_id">USER ID</label>
+    	<input type="text" id="user_id" name="user_id" required>
+
+		<input type="submit" value="Sign in">
+		<button type="button" id="create_account_btn">Create Account</button>
+	</form>
+
+	<div class="popup" id="popup">
+    <p>Invalid username or user ID</p>
+    <button id="closePopup">Close</button>
+	</div>
+
+	<script>
+
+		const popup = document.getElementById('popup');
+		const closeBtn = document.getElementById('closePopup');
+
+
+    	document.getElementById('login').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+		const user_id = document.getElementById('user_id').value;
+
+		const data = { username: username, user_id: user_id };
+
+		fetch('/login', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		})
+
+		.then(response => {
+			if (response.redirected) {
+				window.location.href = response.url;
+			}  
+			else if(!response.ok){
+				popup.classList.add('show');
+			}
+
+		})
+
+    })
+	closeBtn.addEventListener('click', () => {
+    	popup.classList.remove('show');
+    	window.location.href = '/';
+	});
+
+	const create_account_btn = document.getElementById('create_account_btn');
+
+	create_account_btn.addEventListener('click', () => {
+    window.location.href = '/account_cr.html'; 
+	});
+
+	</script> 
+</body>
+</html>

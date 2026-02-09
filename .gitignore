@@ -1,10 +1,24 @@
+# Notes / docs
+notes.txt
+esp-docs.pdf
+/Smart_Rope.pdf
+
+# IDE / editor
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+
+# Node / Web
+node_modules/
+npm-debug.log*
+
 # Build directories
 /build/
 /main/build/
 /components/*/build/
-/esp-docs.pdf
-/.vscode
-/Smart_Rope.pdf
+
 # CMake files
 CMakeCache.txt
 CMakeFiles/
@@ -29,7 +43,7 @@ build.ninja
 sdkconfig
 sdkconfig.old
 
-# Python virtual env (if any)
+# Python virtual env / cache
 venv/
 .robotenv/
 __pycache__/

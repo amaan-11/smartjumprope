@@ -205,12 +205,13 @@ void OledDisplay::initSSD1306() {
 }
 
 void OledDisplay::drawChar(int x, int y, char c) {
-  if (c < 0 || c > 127)
-    return;
+  // Avoid -Wtype-limits warning: on some toolchains, 'char' is unsigned (so c < 0 is impossible)
+  int ci = static_cast<unsigned char>(c);
+  if (ci > 127) return;
 
   // Correctly cast from const char* to const uint8_t*
   const uint8_t *glyph =
-      reinterpret_cast<const uint8_t *>(font8x8_basic[(uint8_t)c]);
+      reinterpret_cast<const uint8_t *>(font8x8_basic[(uint8_t)ci]);
 
   for (int row = 0; row < 8; row++) {
     uint8_t rowBits = glyph[row];
@@ -239,7 +240,7 @@ void OledDisplay::drawString(int x, int y, const char *str) {
   int cursor = x;
   while (*str) {
     drawChar(cursor, y, *str); // pass single char
-    cursor += 8;                      // advance cursor by font width + spacing
+    cursor += 8;               // advance cursor by font width + spacing
     str++;
   }
 }
