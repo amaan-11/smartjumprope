@@ -104,9 +104,9 @@ function initBLE() {
                 const hr = document.getElementById('heartRate');
                 const acceleration = document.getElementById('accelMag');
 
-                if (jump_counts) jump_counts.value = "0";
-                if (hr) hr.value = "-";
-                if (acceleration) acceleration.value = "0";
+                if (jump_counts) jump_counts.textContent = "0";
+                if (hr) hr.textContent = "-";
+                if (acceleration) acceleration.textContent = "0";
             }
             catch (e) {
                 setStatus(String(e));
