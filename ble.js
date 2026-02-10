@@ -59,6 +59,12 @@ function onData(event) {
     const ts = v.getUint32(0, true);
     const jumps = v.getUint32(4, true);
     const hr = v.getUint8(8);
+
+    // Forward parsed values to workout session tracker (if loaded)
+    if (window.workoutOnLiveData) {
+        window.workoutOnLiveData({ jumps, hr });
+    }
+
     const accelMag = v.getUint16(9, true);
     const flags = v.getUint8(11);
 
