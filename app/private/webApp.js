@@ -30,6 +30,8 @@ app.post('/new_user', (req, res) => {
     const { username, user_id } = req.body;
     console.log(username, user_id);
 
+    //db: compare from database is there already particular username or id
+    // if not add new user in db and save user db address/id to req.session  
     const n = "daniel";
     const u = "2";
     if (username === n && user_id === u) {
@@ -47,16 +49,18 @@ app.post('/new_user', (req, res) => {
 
 
 
-
+//login part
 app.post('/login', (req, res) => {
     const { username, user_id } = req.body;
     console.log(username, user_id);
 
-    const n = "daniel";
-    const u = "2";
-    if (username === n && user_id === u) {
+    //db: check does username and id correct comparing with db
+    //if yes save user db address/id to req.session 
+    const test_name = "daniel";
+    const test_id = "2";
+    if (username === test_name && user_id === test_id) {
 
-        req.session.user = { username: n };
+        req.session.user = { username: test_name };
 
         res.redirect('/user-data/rope');
     }
@@ -76,7 +80,7 @@ app.get('/user-data/rope', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/data.html'));
 });
 
-
+//check is user still in session
 function authMiddleware(req, res, next) {
   if (!req.session || !req.session.user) {
     return res.status(401).json({ error: "Not authorized" });
@@ -84,6 +88,7 @@ function authMiddleware(req, res, next) {
   next();
 }
 
+//db:if user in session send data from db (username, last jumps history etc.)
 app.get('/data/user', authMiddleware, (req, res) => {
   const user = req.session.user;
 
