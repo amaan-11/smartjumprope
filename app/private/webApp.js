@@ -1,3 +1,5 @@
+
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -11,7 +13,8 @@ app.use(express.json());
 const temp_key = "fredvccxv4535dfs";
 
 app.use(session({
-  secret: temp_key,
+  //use for secret temp_key if you dont have .env file
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false }
