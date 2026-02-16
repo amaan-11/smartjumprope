@@ -6,7 +6,6 @@
 #include "i2cInit.h"
 #include "jump.h"
 #include "mutex.h"
-//#include "sensor_reading.h"
 #include <cstdio>
 
 /* =========================
@@ -105,57 +104,6 @@ void displayTask(void *param) {
     display->commit();
 
     vTaskDelay(pdMS_TO_TICKS(1000 / DISPLAY_UPDATE_HZ));
-  }
-}
-
-/* =========================
-   LOGGING TASK
-   ========================= */
-void loggingTask(void *param) {
-  ESP_LOGI(TAG, "Logging task started");
-
-  while (true) {
-    vTaskDelay(pdMS_TO_TICKS(10000)); // Log every 10 seconds
-
-    uint32_t xCounts[NUM_TIMING_CONFIGS];
-    uint32_t yCounts[NUM_TIMING_CONFIGS];
-    uint32_t zCounts[NUM_TIMING_CONFIGS];
-
-    {
-      MutexGuard lock(dataMutex);
-      jumpDetector->getCounts(xCounts, yCounts, zCounts);
-    }
-
-    ESP_LOGI(TAG, "=== JUMP COUNTS (10sec update) ===");
-
-    // Log X axis
-    ESP_LOGI(TAG, "X-axis:");
-    for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
-      uint32_t rise, fall;
-      jumpDetector->getTimingConfig(i, rise, fall);
-      ESP_LOGI(TAG, "  Config %d (%lums/%lums): %lu jumps", i, rise, fall,
-               xCounts[i]);
-    }
-
-    // Log Y axis
-    ESP_LOGI(TAG, "Y-axis:");
-    for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
-      uint32_t rise, fall;
-      jumpDetector->getTimingConfig(i, rise, fall);
-      ESP_LOGI(TAG, "  Config %d (%lums/%lums): %lu jumps", i, rise, fall,
-               yCounts[i]);
-    }
-
-    // Log Z axis
-    ESP_LOGI(TAG, "Z-axis:");
-    for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
-      uint32_t rise, fall;
-      jumpDetector->getTimingConfig(i, rise, fall);
-      ESP_LOGI(TAG, "  Config %d (%lums/%lums): %lu jumps", i, rise, fall,
-               zCounts[i]);
-    }
-
-    ESP_LOGI(TAG, "================================");
   }
 }
 

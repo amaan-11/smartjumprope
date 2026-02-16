@@ -24,6 +24,9 @@ struct JumpConfig {
   uint32_t risingStartTime;
   uint32_t fallingStartTime;
   float lastValue;
+
+  // Filtered value for smoothing
+  float filteredValue = 0.0f;
 };
 
 // Structure to track jumps for one axis
@@ -47,6 +50,9 @@ public:
   // Get configuration info
   void getTimingConfig(int configIndex, uint32_t &riseDuration,
                        uint32_t &fallDuration);
+
+  // Optional: log current peak/valley for debugging
+  void logAxisStats();
 
 private:
   uint32_t getMillis();

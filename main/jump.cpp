@@ -6,17 +6,21 @@
 
 static const char *TAG = "JUMP";
 
-// Define the timing configurations to test
-// Format: {minRiseDuration, minFallDuration}
+// ===== Timing + Filtering Controls =====
+#define TIMING_TOLERANCE_MS 35
+#define MAX_PHASE_DURATION_MS 600
+#define FILTER_ALPHA 0.25f
+
+// Timing configurations: {rise, fall}
 static const struct {
   uint32_t rise;
   uint32_t fall;
 } TIMING_CONFIGS[NUM_TIMING_CONFIGS] = {
-    {80, 110},   // Config 0: Very fast (50ms)
-    {110, 130},   // Config 1: Fast (75ms)
-    {135, 165}, // Config 2: Medium (100ms)
-    {170, 200}, // Config 3: Slow (150ms)
-    {205, 250}  // Config 4: Very slow (200ms)
+    {140, 140},  // Very fast
+    {150, 150}, // Fast
+    {160, 160}, // Medium
+    {170, 170}, // Slow
+    {180, 180}  // Very slow
 };
 
 JumpDetector::JumpDetector(SensorReading *gyro, float thresholdFactor,
@@ -29,7 +33,7 @@ JumpDetector::JumpDetector(SensorReading *gyro, float thresholdFactor,
   strcpy(_axisY.name, "Y");
   strcpy(_axisZ.name, "Z");
 
-  // Initialize all configs for all axes
+  // Initialize configs
   for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
     for (AxisDetector *axis : {&_axisX, &_axisY, &_axisZ}) {
       axis->configs[i].minRiseDuration = TIMING_CONFIGS[i].rise;
@@ -43,6 +47,7 @@ JumpDetector::JumpDetector(SensorReading *gyro, float thresholdFactor,
       axis->configs[i].risingStartTime = 0;
       axis->configs[i].fallingStartTime = 0;
       axis->configs[i].lastValue = 0.0f;
+      axis->configs[i].filteredValue = 0.0f; // initialize filter
     }
   }
 
@@ -62,13 +67,10 @@ uint32_t JumpDetector::getMillis() {
 
 void JumpDetector::update() {
   int16_t ax, ay, az, gx, gy, gz;
-  if (_gyro->readRaw(ax, ay, az, gx, gy, gz) != ESP_OK) {
+  if (_gyro->readRaw(ax, ay, az, gx, gy, gz) != ESP_OK)
     return;
-  }
 
   uint32_t now = getMillis();
-
-  // Update all three axes
   updateAxis(_axisX, static_cast<float>(gx), now);
   updateAxis(_axisY, static_cast<float>(gy), now);
   updateAxis(_axisZ, static_cast<float>(gz), now);
@@ -76,7 +78,6 @@ void JumpDetector::update() {
 
 void JumpDetector::updateAxis(AxisDetector &axis, float gyroValue,
                               uint32_t now) {
-  // Test all timing configurations for this axis
   for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
     updateConfig(axis.configs[i], gyroValue, now);
   }
@@ -84,64 +85,68 @@ void JumpDetector::updateAxis(AxisDetector &axis, float gyroValue,
 
 void JumpDetector::updateConfig(JumpConfig &config, float gyroValue,
                                 uint32_t now) {
-  // Detect rising edge START
-  if (gyroValue > config.lastValue && !config.isRising) {
+  // Low-pass filter
+  config.filteredValue =
+      FILTER_ALPHA * gyroValue + (1.0f - FILTER_ALPHA) * config.filteredValue;
+  float value = config.filteredValue;
+
+  // Start rising
+  if (value > config.lastValue && !config.isRising) {
     config.isRising = true;
     config.risingStartTime = now;
     config.peakConfirmed = false;
+    config.peak = value;
   }
 
-  // If rising, update peak
-  if (config.isRising && gyroValue > config.lastValue) {
-    if (gyroValue > config.peak || !config.peakConfirmed) {
-      config.peak = gyroValue;
-    }
-  }
+  // Update peak
+  if (config.isRising && value > config.peak)
+    config.peak = value;
 
-  // Detect peak (transition from rising to falling)
-  if (gyroValue < config.lastValue && config.isRising) {
+  // End rising → start fall
+  if (config.isRising && value < config.lastValue) {
     uint32_t riseDuration = now - config.risingStartTime;
-    if (riseDuration >= config.minRiseDuration) {
-      config.peak = config.lastValue;
+    if (riseDuration >= config.minRiseDuration - TIMING_TOLERANCE_MS &&
+        riseDuration <= config.minRiseDuration + TIMING_TOLERANCE_MS) {
       config.isRising = false;
       config.fallingStartTime = now;
       config.peakConfirmed = true;
-    } else {
-      // Haven't risen long enough - ignore this peak
+      config.valley = value;
+    } else if (riseDuration > MAX_PHASE_DURATION_MS) {
       config.isRising = false;
       config.peakConfirmed = false;
     }
   }
 
-  // If falling, check for jump
-  if (!config.isRising && gyroValue < config.lastValue &&
-      config.peakConfirmed) {
-    if (gyroValue < config.valley) {
-      config.valley = gyroValue;
-    }
+  // Falling phase
+  if (!config.isRising && config.peakConfirmed) {
+    if (value < config.valley)
+      config.valley = value;
 
     uint32_t fallDuration = now - config.fallingStartTime;
-    if (fallDuration >= config.minFallDuration) {
-      float diff = config.peak - config.valley;
+    if (fallDuration >= config.minFallDuration - TIMING_TOLERANCE_MS &&
+        fallDuration <= config.minFallDuration + TIMING_TOLERANCE_MS) {
 
+      float diff = config.peak - config.valley;
       if (diff > _thresholdFactor * _avgJump &&
           now - config.lastJumpTime > _minIntervalMs) {
 
-        config.lastJumpTime = now;
         config.jumpCount++;
-
-        // Update average (shared across all configs)
-        _avgJump = 0.9f * _avgJump + 0.1f * diff;
-
-        // Reset for next jump
-        config.peak = -1e6f;
-        config.valley = 1e6f;
-        config.peakConfirmed = false;
+        config.lastJumpTime = now;
+        _avgJump = 0.95f * _avgJump + 0.05f * diff;
+        ESP_LOGI(TAG, "Jump detected! Peak=%.2f, Valley=%.2f, Diff=%.2f",
+                 config.peak, config.valley, diff);
       }
+
+      // Reset after evaluation
+      config.peakConfirmed = false;
+      config.isRising = false;
+    } else if (fallDuration > MAX_PHASE_DURATION_MS) {
+      config.peakConfirmed = false;
+      config.isRising = false;
     }
   }
 
-  config.lastValue = gyroValue;
+  config.lastValue = value;
 }
 
 void JumpDetector::getCounts(uint32_t countsX[NUM_TIMING_CONFIGS],
@@ -159,5 +164,16 @@ void JumpDetector::getTimingConfig(int configIndex, uint32_t &riseDuration,
   if (configIndex >= 0 && configIndex < NUM_TIMING_CONFIGS) {
     riseDuration = TIMING_CONFIGS[configIndex].rise;
     fallDuration = TIMING_CONFIGS[configIndex].fall;
+  }
+}
+
+// Optional: log peaks/valleys for debugging
+void JumpDetector::logAxisStats() {
+  for (AxisDetector *axis : {&_axisX, &_axisY, &_axisZ}) {
+    for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
+      ESP_LOGI(TAG, "%s Config %d: Peak=%.2f, Valley=%.2f, Count=%lu",
+               axis->name, i, axis->configs[i].peak, axis->configs[i].valley,
+               axis->configs[i].jumpCount);
+    }
   }
 }
