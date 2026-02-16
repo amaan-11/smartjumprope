@@ -98,6 +98,26 @@ app.get('/data/user', authMiddleware, (req, res) => {
 });
 
 
+//logout part
+app.post('/logout', (req, res) => {
+
+  if (!req.session) {
+    return res.redirect('/');
+    console.log(`session doesn't exist`);
+  }
+
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).send('Logout failed');
+    }
+
+    res.clearCookie('connect.sid');
+    res.redirect('/');
+    console.log(`session destroyed`);              
+  });
+});
+
 
 
 app.listen(port, () => {

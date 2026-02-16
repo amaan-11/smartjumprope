@@ -122,3 +122,31 @@ h1 {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+
+
+/* Logout button */
+.logout button {
+  position: fixed;     
+  top: 1rem;           
+  right: 1rem;          
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background-color: #1a1a1a;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 999;    
+  padding: 0.875rem 1.5rem;  
+  font-weight: 500;
+}
+
+.logout button:hover {
+  background-color: #2a2a2a;
+}
+
+.logout button:active {
+  transform: scale(0.98);
+}
