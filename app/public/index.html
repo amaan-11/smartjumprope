@@ -21,14 +21,16 @@
 	</form>
 
 	<div class="popup" id="popup">
-    <p>Invalid username or user ID</p>
-    <button id="closePopup">Close</button>
+    <p id="popup_text"></p>
+    <button id="close_popup">Close</button>
 	</div>
+
 
 	<script>
 
 		const popup = document.getElementById('popup');
-		const closeBtn = document.getElementById('closePopup');
+		const popup_text = document.getElementById('popup_text')
+		const close_btn = document.getElementById('close_popup');
 
 
     	document.getElementById('login').addEventListener('submit', function(event) {
@@ -41,21 +43,35 @@
 		fetch('/login', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data)
+			body: JSON.stringify(data),
+			credentials: 'include'
 		})
 
-		.then(response => {
+		.then(async (response) => {
 			if (response.redirected) {
 				window.location.href = response.url;
+				return;
 			}  
-			else if(!response.ok){
-				popup.classList.add('show');
-			}
+			if (!response.ok) {
+    			let msg = 'Error';
+    			try {
+      				const json = await response.json();
+      				if (json?.error) msg = json.error;
+    			} 
+				catch {
+      				if (response.status === 401) msg = 'Invalid username or user ID';
+      				else if (response.status === 429) msg = 'Too many attempts, try later';
+      				else msg = `Server error: ${response.status}`;
+    			}
 
+				popup_text.textContent = msg;
+    			popup.classList.add('show');
+    			return;
+			}
 		})
 
     })
-	closeBtn.addEventListener('click', () => {
+	close_btn.addEventListener('click', () => {
     	popup.classList.remove('show');
     	window.location.href = '/';
 	});
