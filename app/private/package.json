@@ -7,7 +7,7 @@
     "start": "node webApp.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "sqlite3": "^5.1.7"
   }
