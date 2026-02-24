@@ -1,10 +1,12 @@
-# Build directories
+# ===============================
+# ESP-IDF / Build directories
+# ===============================
 /build/
 /main/build/
 /components/*/build/
 /esp-docs.pdf
-/.vscode
 /Smart_Rope.pdf
+
 # CMake files
 CMakeCache.txt
 CMakeFiles/
@@ -29,16 +31,33 @@ build.ninja
 sdkconfig
 sdkconfig.old
 
-# Python virtual env (if any)
+# ===============================
+# Python / misc
+# ===============================
 venv/
 .robotenv/
 __pycache__/
 
-# OS / editor files
+# ===============================
+# Node.js
+# ===============================
+node_modules/
+
+# ===============================
+# Database (LOCAL ONLY)
+# ===============================
+app/private/database.db
+*.db
+
+# ===============================
+# IDE / Editor
+# ===============================
+.idea/
+.vscode/
+
+# ===============================
+# OS files
+# ===============================
 .DS_Store
 *.swp
 *.swo
-
-#Node
-node_modules/
-

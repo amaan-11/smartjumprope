@@ -1,13 +1,152 @@
-
-body {
-        background-color: #222222;
-        margin: 0;
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        -webkit-text-stroke: 1px #d3d3d3;
-        color: #cccccc;
-        font-size: 22px; 
+/* Minimal black theme */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  font-size: 16px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+#username {
+  font-size: 1.125rem;
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 2rem;
+  opacity: 0.8;
+}
+
+.data {
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.data b {
+  font-size: 1rem;
+}
+
+.data p {
+  margin: 0.75rem 0;
+  font-size: 1rem;
+}
+
+#bleStatus {
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 0.875rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.controls button {
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background-color: #1a1a1a;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.controls button:active {
+  background-color: #2a2a2a;
+  transform: scale(0.98);
+}
+
+.controls button:disabled {
+  background-color: #0a0a0a;
+  border-color: #1a1a1a;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Desktop: horizontal button layout */
+@media (min-width: 480px) {
+  body {
+    padding: 2rem;
+  }
+  
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  .controls {
+    flex-direction: row;
+  }
+  
+  .controls button {
+    flex: 1;
+  }
+}
+
+/* Remove tap highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+
+/* Logout button */
+.logout button {
+  position: fixed;     
+  top: 1rem;           
+  right: 1rem;          
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background-color: #1a1a1a;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 999;    
+  padding: 0.875rem 1.5rem;  
+  font-weight: 500;
+}
+
+.logout button:hover {
+  background-color: #2a2a2a;
+}
+
+.logout button:active {
+  transform: scale(0.98);
+}

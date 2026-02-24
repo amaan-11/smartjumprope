@@ -7,9 +7,8 @@
 </head>
 <body>
 	<div class="header-img">
-		<img src="/pics/jumping_man.png" alt="" width="227" height="323">
+		<img src="pics/jumping_man.png" alt="" width="227" height="323">
 	</div>
-
 	<form class="login-section" id="login" method="POST">
 		
 		<label for="username">SIGN IN WITH USERNAME</label>
@@ -18,10 +17,23 @@
     	<input type="text" id="user_id" name="user_id" required>
 
 		<input type="submit" value="Sign in">
+		<button type="button" id="create_account_btn">Create Account</button>
 	</form>
 
+	<div class="popup" id="popup">
+    <p id="popup_text"></p>
+    <button id="close_popup">Close</button>
+	</div>
+
+
 	<script>
-    document.getElementById('login').addEventListener('submit', function(event) {
+
+		const popup = document.getElementById('popup');
+		const popup_text = document.getElementById('popup_text')
+		const close_btn = document.getElementById('close_popup');
+
+
+    	document.getElementById('login').addEventListener('submit', function(event) {
         event.preventDefault();
         const username = document.getElementById('username').value;
 		const user_id = document.getElementById('user_id').value;
@@ -31,18 +43,45 @@
 		fetch('/login', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data)
+			body: JSON.stringify(data),
+			credentials: 'include'
 		})
 
-		.then(response => {
+		.then(async (response) => {
 			if (response.redirected) {
 				window.location.href = response.url;
+				return;
 			}  
-			else {
-				window.location.href = '/';
+			if (!response.ok) {
+    			let msg = 'Error';
+    			try {
+      				const json = await response.json();
+      				if (json?.error) msg = json.error;
+    			} 
+				catch {
+      				if (response.status === 401) msg = 'Invalid username or user ID';
+      				else if (response.status === 429) msg = 'Too many attempts, try later';
+      				else msg = `Server error: ${response.status}`;
+    			}
+
+				popup_text.textContent = msg;
+    			popup.classList.add('show');
+    			return;
 			}
 		})
+
     })
-	</script>
+	close_btn.addEventListener('click', () => {
+    	popup.classList.remove('show');
+    	window.location.href = '/';
+	});
+
+	const create_account_btn = document.getElementById('create_account_btn');
+
+	create_account_btn.addEventListener('click', () => {
+    window.location.href = '/account_cr.html'; 
+	});
+
+	</script> 
 </body>
 </html>

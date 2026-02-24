@@ -7,11 +7,27 @@
 </head>
 <body>
 
+<div class="logout">
+	<button id="logout_btn">Logout</button>
+</div>
+
 <h1>Smart Jump Rope</h1>
 
-<div class="data">
-	<b>Hyvää kamaa</b>
-</div>
+<h1 id="username"></h1>
+
+<script>
+	fetch('/data/user', { credentials: 'include' })
+			.then(res => {
+				if (!res.ok) throw new Error('Not authorized');
+				return res.json();
+			})
+			.then(data => {
+				document.getElementById('username').textContent = `Welcome, ${data.username}!`;
+			})
+			.catch(err => {
+				console.error(err);
+			});
+</script>
 
 <!-- Bluetooth status -->
 <div id="bleStatus">Disconnected</div>
@@ -30,8 +46,55 @@
 	<p><strong>Acceleration:</strong> <span id="accelMag">0</span></p>
 </div>
 
+<hr>
+
+<h2 style="text-align:center;">Workout History</h2>
+
+<div class="controls">
+	<button id="btnRefreshHistory">Refresh history</button>
+</div>
+
+<div class="data" style="overflow-x:auto;">
+	<table id="historyTable" style="width:100%; border-collapse: collapse;">
+		<thead>
+		<tr>
+			<th style="border:1px solid #333; padding:8px;">ID</th>
+			<th style="border:1px solid #333; padding:8px;">Start</th>
+			<th style="border:1px solid #333; padding:8px;">Duration</th>
+			<th style="border:1px solid #333; padding:8px;">Jumps</th>
+			<th style="border:1px solid #333; padding:8px;">Avg HR</th>
+			<th style="border:1px solid #333; padding:8px;">Max HR</th>
+			<th style="border:1px solid #333; padding:8px;">Device</th>
+		</tr>
+		</thead>
+		<tbody></tbody>
+	</table>
+</div>
+
 <!-- Browser-side Bluetooth logic -->
 <script src="/ble.js"></script>
+
+<!-- Workout history rendering -->
+<script src="/history.js"></script>
+
+<script>
+	document.getElementById('logout_btn').addEventListener('click', function(event) {
+		event.preventDefault();
+
+		fetch('/logout', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include'
+		})
+				.then(response => {
+					if (response.redirected) {
+						window.location.href = response.url;
+					} else if (!response.ok) {
+						window.location.href = '/';
+					}
+				});
+	});
+</script>
 
 </body>
 </html>
