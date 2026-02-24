@@ -89,9 +89,35 @@ function initBLE() {
     const btnStart = document.getElementById("btnStart");
     const btnStop = document.getElementById("btnStop");
 
-    if (btnConnect) btnConnect.addEventListener("click", () => connectBLE().catch(e => setStatus(String(e))));
+    if (btnConnect) {
+        btnConnect.addEventListener("click", () => connectBLE().catch(e => setStatus(String(e))));
+        console.log(`connecting...`);
+    }
     if (btnStart) btnStart.addEventListener("click", () => startStreaming().catch(e => setStatus(String(e))));
-    if (btnStop) btnStop.addEventListener("click", () => stopStreaming().catch(e => setStatus(String(e))));
+
+    if (btnStop) {
+        btnStop.addEventListener("click", async () => {
+            try {
+                await stopStreaming(); 
+
+                const jump_counts = document.getElementById('jumpCount');
+                const hr = document.getElementById('heartRate');
+                const acceleration = document.getElementById('accelMag');
+
+                if (jump_counts) jump_counts.textContent = "0";
+                if (hr) hr.textContent = "-";
+                if (acceleration) acceleration.textContent = "0";
+            }
+            catch (e) {
+                setStatus(String(e));
+            }
+
+        });
+    }
+    /*if (btnStop) {
+        btnStop.addEventListener("click", () => stopStreaming().catch(e => setStatus(String(e))));
+        
+    }*/
 
     setStatus("Disconnected");
     enableControls(false);

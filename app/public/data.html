@@ -7,11 +7,31 @@
 </head>
 <body>
 
+<div class="logout">
+  <button id="logout_btn">Logout</button>
+</div>
+
 <h1>Smart Jump Rope</h1>
 
-<div class="data">
-	<b>Hyvää kamaa</b>
-</div>
+<h1 id="username"></h1>
+
+
+<script>
+	fetch('/data/user', { credentials: 'include' })
+  .then(res => {
+    if (!res.ok) throw new Error('Not authorized');
+    return res.json();
+  })
+  .then(data => {
+    document.getElementById('username').textContent = `Welcome, ${data.username}!`;
+  })
+  .catch(err => {
+    console.error(err);
+  });
+</script>
+
+
+
 
 <!-- Bluetooth status -->
 <div id="bleStatus">Disconnected</div>
@@ -33,5 +53,27 @@
 <!-- Browser-side Bluetooth logic -->
 <script src="/ble.js"></script>
 
+<script>
+  document.getElementById('logout_btn').addEventListener('click', function(event) {
+    event.preventDefault();
+
+
+		fetch('/logout', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include'
+		})
+
+		.then(response => {
+			if (response.redirected) {
+				window.location.href = response.url;
+			}  
+			else if(!response.ok){
+				window.location.href = '/';
+			}
+		})
+
+    })
+</script>
 </body>
 </html>

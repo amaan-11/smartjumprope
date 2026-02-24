@@ -1,170 +1,162 @@
-const express = require("express");
+
+require('dotenv').config();
+
+const express = require('express');
 const app = express();
-const path = require("path");
-const cors = require("cors");
-const sqlite3 = require("sqlite3").verbose();
 
-const port = process.env.PORT || 3000;
+//app.set('trust proxy', 1);
 
-app.use(cors());
+const path = require('path');
+const rateLimit = require("express-rate-limit");
+const { ipKeyGenerator } = require("express-rate-limit");
+const session = require('express-session');
+
+const port = 3000;
+
+app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());
 
-// Serve root-level frontend files (index.html, data.html, ble.js, data.css, etc.)
-const REPO_ROOT = path.join(__dirname, "..", "..");
-app.use(express.static(REPO_ROOT));
+//const temp_key = "fredvccxv4535dfs";
 
-// Also keep serving app/public if you still use it anywhere
-app.use(express.static(path.join(__dirname, "../public")));
+app.use(session({
+  //use for secret temp_key if you dont have .env file
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }
+}));
 
-// ---- SQLite DB ----
-const DB_PATH = path.join(__dirname, "database.db");
-const db = new sqlite3.Database(DB_PATH, (err) => {
-    if (err) {
-        console.error("Failed to open SQLite DB:", err);
-        process.exit(1);
-    }
-    console.log("SQLite DB opened:", DB_PATH);
+//If .html not index!
+/*
+app.get('/', (req, res) => {
+   // res.sendFile(path.join(__dirname, '../public/webApp.html'));
 });
+*/
 
-function run(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function (err) {
-            if (err) return reject(err);
-            resolve({ lastID: this.lastID, changes: this.changes });
-        });
-    });
-}
 
-function all(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) return reject(err);
-            resolve(rows);
-        });
-    });
-}
-
-async function initDb() {
-    await run(`
-        CREATE TABLE IF NOT EXISTS workouts (
-                                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-                                                start_time TEXT NOT NULL,
-                                                end_time   TEXT NOT NULL,
-                                                duration_ms INTEGER NOT NULL CHECK(duration_ms >= 0),
-
-            jump_count INTEGER NOT NULL CHECK(jump_count >= 0),
-
-            avg_heart_rate_bpm INTEGER,
-            max_heart_rate_bpm INTEGER,
-
-            device_name TEXT NOT NULL DEFAULT 'JRope-C6'
-            );
-    `);
-
-    console.log("DB ready: workouts table ensured.");
-}
-
-// Validation helpers
-function isISODateString(s) {
-    return typeof s === "string" && !Number.isNaN(Date.parse(s));
-}
-
-function toIntOrNull(x) {
-    if (x === null || x === undefined || x === "") return null;
-    const n = Number(x);
-    return Number.isFinite(n) ? Math.trunc(n) : null;
-}
-
-function requireIntNonNegative(x, fieldName) {
-    const n = Number(x);
-    if (!Number.isFinite(n) || n < 0) {
-        throw new Error(`${fieldName} must be a non-negative number`);
-    }
-    return Math.trunc(n);
-}
-
-// ---- Existing login routes (kept exactly) ----
-app.post("/login", (req, res) => {
+//account creation
+app.post('/new_user', (req, res) => {
     const { username, user_id } = req.body;
     console.log(username, user_id);
 
+    //db: compare from database is there already particular username or id
+    // if not add new user in db and save user db address/id to req.session  
     const n = "daniel";
     const u = "2";
-    if (username === n && String(user_id) === u) {
-        res.redirect("/user-data/rope");
-    } else {
-        res.redirect("/");
+    if (username === n && user_id === u) {
+
+        req.session.user = { username: n };
+
+        res.redirect('/user-data/rope');
     }
+    else {
+        res.status(401).json({ error: "Invalid credentials" });
+    } 
+
+    //res.sendFile(__dirname + '/data.html');
 });
 
-app.get("/user-data/rope", (req, res) => {
-    // Prefer root-level data.html if it exists, otherwise fall back to public/data.html
-    res.sendFile(path.join(REPO_ROOT, "data.html"), (err) => {
-        if (err) {
-            res.sendFile(path.join(__dirname, "../public/data.html"));
-        }
-    });
+const login_ip_limiter = rateLimit({
+  windowMs: 10 * 60 * 1000,   
+  max: 40,                     
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  keyGenerator: (req) => ipKeyGenerator(req.ip),
+
+  message: { error: "Too many attempts from this IP. Try again later." },
 });
 
-// ---- API: create workout ----
-app.post("/api/workouts", async (req, res) => {
-    try {
-        const body = req.body || {};
+const login_user_failed_limiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
 
-        if (!isISODateString(body.start_time)) throw new Error("start_time must be an ISO date string");
-        if (!isISODateString(body.end_time)) throw new Error("end_time must be an ISO date string");
+  keyGenerator: (req) => {
+    const u = (req.body?.username || "").trim();
+    return u ? `user:${u}` : `ip:${ipKeyGenerator(req.ip)}`;
+  },
 
-        const duration_ms = requireIntNonNegative(body.duration_ms, "duration_ms");
-        const jump_count = requireIntNonNegative(body.jump_count, "jump_count");
+  skipSuccessfulRequests: true,
+  requestWasSuccessful: (req, res) => res.statusCode < 400,
 
-        const avg_hr = toIntOrNull(body.avg_heart_rate_bpm);
-        const max_hr = toIntOrNull(body.max_heart_rate_bpm);
+  message: { error: "Too many failed attempts for this username. Try again later." },
+});
 
-        const device_name =
-            typeof body.device_name === "string" && body.device_name.trim()
-                ? body.device_name.trim()
-                : "JRope-C6";
 
-        const result = await run(
-            `
-                INSERT INTO workouts
-                (start_time, end_time, duration_ms, jump_count, avg_heart_rate_bpm, max_heart_rate_bpm, device_name)
-                VALUES
-                    (?, ?, ?, ?, ?, ?, ?)
-            `,
-            [body.start_time, body.end_time, duration_ms, jump_count, avg_hr, max_hr, device_name]
-        );
+//login part
+app.post('/login', login_ip_limiter, login_user_failed_limiter, (req, res) => {
+    const { username, user_id } = req.body;
+    console.log(username, user_id);
 
-        const inserted = await all("SELECT * FROM workouts WHERE id = ?", [result.lastID]);
-        res.status(201).json({ ok: true, workout: inserted[0] });
-    } catch (err) {
-        res.status(400).json({ ok: false, error: String(err.message || err) });
+    //db: check does username and id correct comparing with db
+    //if yes save user db address/id to req.session 
+    const test_name = "daniel";
+    const test_id = "2";
+    if (username === test_name && user_id === test_id) {
+
+        req.session.user = { username: test_name };
+
+        res.redirect('/user-data/rope');
     }
+    else {
+        res.status(401).json({ error: "Invalid username or user ID" });
+    } 
+
+    //res.sendFile(__dirname + '/data.html');
 });
 
-// ---- API: list recent workouts ----
-app.get("/api/workouts", async (req, res) => {
-    try {
-        const limit = Math.min(Math.max(Number(req.query.limit || 20), 1), 100);
-        const rows = await all(
-            "SELECT * FROM workouts ORDER BY datetime(start_time) DESC LIMIT ?",
-            [limit]
-        );
-        res.json({ ok: true, workouts: rows });
-    } catch (err) {
-        res.status(500).json({ ok: false, error: String(err.message || err) });
+//check is user still in session
+function authMiddleware(req, res, next) {
+  if (!req.session || !req.session.user) {
+    return res.status(401).json({ error: "Not authorized" });
+  }
+  next();
+}
+
+//signed user part
+app.get('/user-data/rope', authMiddleware, (req, res) => {
+
+    //res.sendFile('data.html', { root: path.join(__dirname, '../public') });
+    res.sendFile(path.join(__dirname, '../public/data.html'));
+});
+
+
+
+//db:if user in session send data from db (username, last jumps history etc.)
+app.get('/data/user', authMiddleware, (req, res) => {
+  const user = req.session.user;
+
+  res.json({
+    username: user.username,
+  });
+});
+
+
+//logout part
+app.post('/logout', (req, res) => {
+
+  if (!req.session) {
+    console.log(`session doesn't exist`);
+    return res.redirect('/');
+  }
+
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).send('Logout failed');
     }
+
+    res.clearCookie('connect.sid');
+    res.redirect('/');
+    console.log(`session destroyed`);              
+  });
 });
 
-initDb()
-    .then(() => {
-        app.listen(port, () => {
-            console.log(`server running on ${port}`);
-        });
-    })
-    .catch((err) => {
-        console.error("DB init failed:", err);
-        process.exit(1);
-    });
+
+
+app.listen(port, () => {
+    console.log(`server running on  ${port}`);
+});
+
