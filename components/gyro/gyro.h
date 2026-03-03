@@ -24,11 +24,9 @@ public:
   // Public API
   void startTask();
   QueueHandle_t getQueue() const { return data_queue; }
-
+  esp_err_t readRawAccel(int16_t &ax, int16_t &ay, int16_t &az);
+  esp_err_t readRawGyro(int16_t &gx, int16_t &gy, int16_t &gz);
   bool isInitialized() const { return _initialized; }
-
-  esp_err_t readRaw(int16_t &ax, int16_t &ay, int16_t &az, int16_t &gx,
-                    int16_t &gy, int16_t &gz);
 
   SensorReading();
 
@@ -50,4 +48,4 @@ private:
   void taskLoop();
 
   static void taskEntry(void *param);
-};
+  };

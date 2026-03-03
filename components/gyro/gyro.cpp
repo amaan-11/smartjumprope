@@ -90,37 +90,46 @@ void SensorReading::readSensitivity() {
   ESP_LOGI(TAG, "Gyro sensitivity: %f", gyro_sensitivity);
 }
 
-esp_err_t SensorReading::readRaw(int16_t &ax, int16_t &ay, int16_t &az,
-                                 int16_t &gx, int16_t &gy, int16_t &gz) {
-  if (!_initialized) {
+// Read accelerometer only
+esp_err_t SensorReading::readRawAccel(int16_t &ax, int16_t &ay, int16_t &az) {
+  if (!_initialized)
     return ESP_FAIL;
-  }
 
   I2CManager &i2c = I2CManager::getInstance();
+  MutexGuard lock(i2c.getMutex());
 
-  {
-    MutexGuard lock(i2c.getMutex());
-    // ESP_LOGD(TAG, "[GYRO] Acquired I2C lock for read");
+  uint8_t reg = 0x3B; // start register for accelerometer
+  uint8_t raw[6];     // only need 6 bytes for accel
+  esp_err_t ret = i2c_master_write_read_device(i2c.getPort(), MPU_ADDR, &reg, 1,
+                                               raw, 6, pdMS_TO_TICKS(100));
+  if (ret != ESP_OK)
+    return ret;
 
-    uint8_t reg = 0x3B;
-    uint8_t raw[14];
+  ax = (raw[0] << 8) | raw[1];
+  ay = (raw[2] << 8) | raw[3];
+  az = (raw[4] << 8) | raw[5];
 
-    esp_err_t ret = i2c_master_write_read_device(
-        i2c.getPort(), MPU_ADDR, &reg, 1, raw, 14, pdMS_TO_TICKS(100));
+  return ESP_OK;
+}
 
-    // ESP_LOGD(TAG, "[GYRO] Released I2C lock");
+// Read gyroscope only
+esp_err_t SensorReading::readRawGyro(int16_t &gx, int16_t &gy, int16_t &gz) {
+  if (!_initialized)
+    return ESP_FAIL;
 
-    if (ret != ESP_OK)
-      return ret;
+  I2CManager &i2c = I2CManager::getInstance();
+  MutexGuard lock(i2c.getMutex());
 
-    ax = (raw[0] << 8) | raw[1];
-    ay = (raw[2] << 8) | raw[3];
-    az = (raw[4] << 8) | raw[5];
+  uint8_t reg = 0x43; // start register for gyro
+  uint8_t raw[6];     // 6 bytes for gyro
+  esp_err_t ret = i2c_master_write_read_device(i2c.getPort(), MPU_ADDR, &reg, 1,
+                                               raw, 6, pdMS_TO_TICKS(100));
+  if (ret != ESP_OK)
+    return ret;
 
-    gx = (raw[8] << 8) | raw[9];
-    gy = (raw[10] << 8) | raw[11];
-    gz = (raw[12] << 8) | raw[13];
-  }
+  gx = (raw[0] << 8) | raw[1];
+  gy = (raw[2] << 8) | raw[3];
+  gz = (raw[4] << 8) | raw[5];
 
   return ESP_OK;
 }
@@ -137,7 +146,7 @@ void SensorReading::taskLoop() {
   while (true) {
     int16_t ax, ay, az, gx, gy, gz;
 
-    if (readRaw(ax, ay, az, gx, gy, gz) == ESP_OK) {
+    if (readRawAccel(ax, ay, az) == ESP_OK && readRawGyro(gx, gy, gz)) {
       mpu_data_t data;
 
       data.ax_g = ax / accel_sensitivity;
