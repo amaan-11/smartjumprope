@@ -39,73 +39,31 @@ struct AxisDetector {
 
 class JumpDetector {
 public:
-  /**
-   * Constructor
-   * @param sensor Pointer to sensor reading object
-   * @param type Sensor type (SENSOR_GYRO or SENSOR_ACCEL)
-   * @param thresholdFactor Multiplier for adaptive threshold (e.g., 1.3)
-   * @param minIntervalMs Minimum time between jumps (ms)
-   */
-  JumpDetector(SensorReading *sensor, SensorType type,
+  JumpDetector(SensorReading *sensor,
                float thresholdFactor = 1.3f, uint32_t minIntervalMs = 300);
 
-  /**
-   * Update detector - call this frequently (100Hz recommended)
-   */
   void update();
+  void jumpDetectionTask();
+  esp_err_t readAccelRaw(int16_t &ax, int16_t &ay, int16_t &az);
 
-  /**
-   * Get jump counts for all axes and timing configurations
-   * @param countsX Output array for X axis (size NUM_TIMING_CONFIGS)
-   * @param countsY Output array for Y axis (size NUM_TIMING_CONFIGS)
-   * @param countsZ Output array for Z axis (size NUM_TIMING_CONFIGS)
-   */
   void getCounts(uint32_t countsX[NUM_TIMING_CONFIGS],
                  uint32_t countsY[NUM_TIMING_CONFIGS],
                  uint32_t countsZ[NUM_TIMING_CONFIGS]);
 
-  /**
-   * Get timing configuration parameters
-   * @param configIndex Configuration index (0 to NUM_TIMING_CONFIGS-1)
-   * @param riseDuration Output rise duration (ms)
-   * @param fallDuration Output fall duration (ms)
-   */
   void getTimingConfig(int configIndex, uint32_t &riseDuration,
                        uint32_t &fallDuration);
 
-  /**
-   * Get total jumps for each axis
-   * @param totalX Output total for X axis
-   * @param totalY Output total for Y axis
-   * @param totalZ Output total for Z axis
-   */
   void getTotalJumps(uint32_t &totalX, uint32_t &totalY,
                      uint32_t &totalZ) const;
 
-  /**
-   * Get average jump rate for each axis
-   * @param rateX Output rate for X axis (jumps/min)
-   * @param rateY Output rate for Y axis (jumps/min)
-   * @param rateZ Output rate for Z axis (jumps/min)
-   */
   void getAverageRates(float &rateX, float &rateY, float &rateZ) const;
 
-  /**
-   * Check if calibration is complete
-   * @return true if calibrated
-   */
   bool isCalibrated() const;
 
-  /**
-   * Get detector name
-   * @return "GYRO" or "ACCEL"
-   */
   const char *getName() const;
 
 private:
   SensorReading *_sensor;
-  SensorType _sensorType;
-  char _sensorName[8]; // "GYRO" or "ACCEL"
   float _thresholdFactor;
   uint32_t _minIntervalMs;
 
@@ -117,34 +75,16 @@ private:
   bool _calibrationComplete;  // Calibration status
   uint32_t _calibrationJumps; // Jumps during calibration
 
-  /**
-   * Get current time in milliseconds
-   */
   uint32_t getMillis();
 
-  /**
-   * Update a single axis
-   */
   void updateAxis(AxisDetector &axis, float value, uint32_t now);
 
-  /**
-   * Update a single configuration
-   */
   void updateConfig(JumpConfig &config, float value, uint32_t now);
 
-  /**
-   * Get config index from pointer
-   */
   int getConfigIndex(JumpConfig *config);
 
-  /**
-   * Calculate total jumps for an axis
-   */
   uint32_t getAxisTotal(const AxisDetector &axis) const;
 
-  /**
-   * Calculate average rate for an axis
-   */
   float getAxisRate(const AxisDetector &axis) const;
 };
 

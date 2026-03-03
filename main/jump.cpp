@@ -1,4 +1,5 @@
 #include "jump.h"
+#include "gyro.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include <cmath>
@@ -22,6 +23,20 @@ static const char *TAG = "JUMP";
 #define MIN_THRESHOLD 40.0f
 #define MAX_THRESHOLD 800.0f
 #define INITIAL_THRESHOLD 100.0f
+#define JUMP_THRESHOLD_FACTOR 1.3f
+#define MIN_JUMP_INTERVAL_MS 300
+#define JUMP_UPDATE_HZ 100
+#define DISPLAY_UPDATE_HZ 4
+#define CALIBRATION_TIME_MS 3000
+
+// Calibration tracking
+static uint32_t calibrationStartTime = 0;
+static bool calibrationPhase = true;
+
+// Store counts for display (3 axes * 4 configs each)
+static uint32_t accelCountsX[NUM_TIMING_CONFIGS];
+static uint32_t accelCountsY[NUM_TIMING_CONFIGS];
+static uint32_t accelCountsZ[NUM_TIMING_CONFIGS];
 
 // Timing configurations: {rise, fall} - 4 configs
 static const struct {
@@ -34,18 +49,11 @@ static const struct {
     {200, 200}  // Very slow
 };
 
-JumpDetector::JumpDetector(SensorReading *sensor, SensorType type,
+JumpDetector::JumpDetector(SensorReading *sensor,
                            float thresholdFactor, uint32_t minIntervalMs)
-    : _sensor(sensor), _sensorType(type), _thresholdFactor(thresholdFactor),
+    : _sensor(sensor), _thresholdFactor(thresholdFactor),
       _minIntervalMs(minIntervalMs), _avgJump(INITIAL_THRESHOLD),
       _calibrationComplete(false), _calibrationJumps(0) {
-
-  // Set sensor name
-  if (_sensorType == SENSOR_GYRO) {
-    strcpy(_sensorName, "GYRO");
-  } else {
-    strcpy(_sensorName, "ACCEL");
-  }
 
   // Initialize axis names
   strcpy(_axisX.name, "X");
@@ -69,19 +77,6 @@ JumpDetector::JumpDetector(SensorReading *sensor, SensorType type,
       axis->configs[i].filteredSlow = 0.0f;
     }
   }
-
-  ESP_LOGI(TAG, "=== %s 3-Axis Detector Initialized ===", _sensorName);
-  ESP_LOGI(TAG,
-           "Testing %d timing configurations per axis:", NUM_TIMING_CONFIGS);
-  for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
-    ESP_LOGI(TAG, "  Config %d: Rise=%lums, Fall=%lums", i,
-             TIMING_CONFIGS[i].rise, TIMING_CONFIGS[i].fall);
-  }
-  ESP_LOGI(TAG, "Total detectors: 3 axes * %d configs = %d", NUM_TIMING_CONFIGS,
-           3 * NUM_TIMING_CONFIGS);
-  ESP_LOGI(TAG, "Threshold factor: %.2f", thresholdFactor);
-  ESP_LOGI(TAG, "Min interval: %lu ms", minIntervalMs);
-  ESP_LOGI(TAG, "Calibration: %d jumps needed", CALIBRATION_JUMPS);
 }
 
 uint32_t JumpDetector::getMillis() {
@@ -89,22 +84,16 @@ uint32_t JumpDetector::getMillis() {
 }
 
 void JumpDetector::update() {
-  int16_t ax, ay, az, gx, gy, gz;
-  if (_sensor->readRaw(ax, ay, az, gx, gy, gz) != ESP_OK)
+  int16_t ax, ay, az;
+
+  if (_sensor->readRawAccel(ax, ay, az) != ESP_OK)
     return;
 
   uint32_t now = getMillis();
 
-  // Update each axis based on sensor type
-  if (_sensorType == SENSOR_GYRO) {
-    updateAxis(_axisX, static_cast<float>(gx), now);
-    updateAxis(_axisY, static_cast<float>(gy), now);
-    updateAxis(_axisZ, static_cast<float>(gz), now);
-  } else {
-    updateAxis(_axisX, static_cast<float>(ax), now);
-    updateAxis(_axisY, static_cast<float>(ay), now);
-    updateAxis(_axisZ, static_cast<float>(az), now);
-  }
+  updateAxis(_axisX, (float)ax, now);
+  updateAxis(_axisY, (float)ay, now);
+  updateAxis(_axisZ, (float)az, now);
 }
 
 void JumpDetector::updateAxis(AxisDetector &axis, float value, uint32_t now) {
@@ -200,9 +189,7 @@ void JumpDetector::updateConfig(JumpConfig &config, float value, uint32_t now) {
           _calibrationJumps++;
           if (_calibrationJumps >= CALIBRATION_JUMPS) {
             _calibrationComplete = true;
-            ESP_LOGI(TAG, "%s calibration complete! Threshold: %.2f",
-                     _sensorName, _avgJump);
-          }
+                      }
         }
       }
 
@@ -291,4 +278,3 @@ void JumpDetector::getAverageRates(float &rateX, float &rateY,
 
 bool JumpDetector::isCalibrated() const { return _calibrationComplete; }
 
-const char *JumpDetector::getName() const { return _sensorName; }
