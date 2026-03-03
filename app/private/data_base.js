@@ -55,24 +55,34 @@ function requireIntNonNegative(x, fieldName) {
 // --- public API ---
 async function init() {
     await run(`
-    CREATE TABLE IF NOT EXISTS workouts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-      start_time TEXT NOT NULL,
-      end_time   TEXT NOT NULL,
-      duration_ms INTEGER NOT NULL CHECK(duration_ms >= 0),
+          username TEXT NOT NULL UNIQUE,
+          user_id   TEXT NOT NULL
+        );
+    `);
 
-      jump_count INTEGER NOT NULL CHECK(jump_count >= 0),
+    await run(`
+        CREATE TABLE IF NOT EXISTS workouts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-      avg_heart_rate_bpm INTEGER,
-      max_heart_rate_bpm INTEGER,
+          start_time TEXT NOT NULL,
+          end_time   TEXT NOT NULL,
+          duration_ms INTEGER NOT NULL CHECK(duration_ms >= 0),
 
-      device_name TEXT NOT NULL DEFAULT 'JRope-C6'
-    );
-  `);
+          jump_count INTEGER NOT NULL CHECK(jump_count >= 0),
 
-    console.log("DB ready: workouts table ensured.");
+          avg_heart_rate_bpm INTEGER,
+          max_heart_rate_bpm INTEGER,
+
+          device_name TEXT NOT NULL DEFAULT 'JRope-C6'
+        );
+    `);
+
+    console.log("DB ready: users + workouts tables ensured.");
 }
 
 async function insertWorkout(body) {
@@ -111,8 +121,49 @@ async function listWorkouts(limit = 20) {
     return all("SELECT * FROM workouts ORDER BY datetime(start_time) DESC LIMIT ?", [n]);
 }
 
+function get(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => {
+            if (err) return reject(err);
+            resolve(row);
+        });
+    });
+}
+
+function requireNonEmptyString(x, fieldName) {
+    if (typeof x !== "string" || !x.trim()) {
+        throw new Error(`${fieldName} must be a non-empty string`);
+    }
+    return x.trim();
+}
+
+async function createUser({ username, user_id }) {
+    const u = requireNonEmptyString(username, "username");
+    const id = requireNonEmptyString(user_id, "user_id");
+
+    const result = await run(
+        `INSERT INTO users (username, user_id) VALUES (?, ?)`,
+        [u, id]
+    );
+
+    return get(`SELECT id, username, user_id, created_at FROM users WHERE id = ?`, [result.lastID]);
+}
+
+async function findUserByCredentials(username, user_id) {
+    const u = requireNonEmptyString(username, "username");
+    const id = requireNonEmptyString(user_id, "user_id");
+
+    return get(
+        `SELECT id, username, user_id, created_at FROM users WHERE username = ? AND user_id = ?`,
+        [u, id]
+    );
+}
+
 module.exports = {
     init,
     insertWorkout,
     listWorkouts,
+
+    createUser,
+    findUserByCredentials,
 };

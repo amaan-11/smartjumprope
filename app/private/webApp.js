@@ -36,19 +36,23 @@ app.use(
 // ===============================
 // Account creation
 // ===============================
-app.post("/new_user", (req, res) => {
-    const { username, user_id } = req.body;
-    console.log(username, user_id);
+app.post("/new_user", async (req, res) => {
+    try {
+        const { username, user_id } = req.body;
 
-    // TODO: DB: check if username/id exists; if not create
-    const n = "daniel";
-    const u = "2";
+        // создать пользователя
+        const user = await db.createUser({ username, user_id });
 
-    if (username === n && user_id === u) {
-        req.session.user = { username: n };
-        res.redirect("/user-data/rope");
-    } else {
-        res.status(401).json({ error: "Invalid credentials" });
+        // записать в сессию
+        req.session.user = { id: user.id, username: user.username };
+
+        return res.redirect("/user-data/rope");
+    } catch (err) {
+        // username уже существует
+        if (err && err.code === "SQLITE_CONSTRAINT") {
+            return res.status(409).json({ error: "Username already exists" });
+        }
+        return res.status(400).json({ error: String(err.message || err) });
     }
 });
 
@@ -81,19 +85,19 @@ const login_user_failed_limiter = rateLimit({
 // ===============================
 // Login
 // ===============================
-app.post("/login", login_ip_limiter, login_user_failed_limiter, (req, res) => {
-    const { username, user_id } = req.body;
-    console.log(username, user_id);
+app.post("/login", login_ip_limiter, login_user_failed_limiter, async (req, res) => {
+    try {
+        const { username, user_id } = req.body;
 
-    // TODO: DB: check does username and id correct comparing with db
-    const test_name = "daniel";
-    const test_id = "2";
+        const user = await db.findUserByCredentials(username, user_id);
+        if (!user) {
+            return res.status(401).json({ error: "Invalid username or user ID" });
+        }
 
-    if (username === test_name && user_id === test_id) {
-        req.session.user = { username: test_name };
-        res.redirect("/user-data/rope");
-    } else {
-        res.status(401).json({ error: "Invalid username or user ID" });
+        req.session.user = { id: user.id, username: user.username };
+        return res.redirect("/user-data/rope");
+    } catch (err) {
+        return res.status(500).json({ error: String(err.message || err) });
     }
 });
 
