@@ -5,6 +5,30 @@ const JR_DATA_UUID    = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
 let device, server, ctrlChar, dataChar;
 
+// ---- Simple workout state (no users) ----
+const workout = {
+    active: false,
+    startMs: 0,
+    lastJumpCount: 0,
+    hrSamples: [],
+    maxHr: 0,
+    deviceName: "JRope-C6",
+};
+
+function nowMs() {
+    return Date.now();
+}
+
+function isoFromMs(ms) {
+    return new Date(ms).toISOString();
+}
+
+function averageInt(arr) {
+    if (!arr.length) return null;
+    const sum = arr.reduce((a, b) => a + b, 0);
+    return Math.round(sum / arr.length);
+}
+
 function setStatus(msg) {
     const el = document.getElementById("bleStatus");
     if (el) el.textContent = msg;
@@ -50,19 +74,13 @@ async function connectBLE() {
 function onData(event) {
     const v = event.target.value; // DataView
 
-    // Example packet v1 (12 bytes):
-    // 0: u32 timestamp_ms
-    // 4: u32 jump_count
-    // 8: u8  heart_rate_bpm
-    // 9: u16 accel_mag_mg
-    // 11: u8 flags
     const ts = v.getUint32(0, true);
     const jumps = v.getUint32(4, true);
     const hr = v.getUint8(8);
     const accelMag = v.getUint16(9, true);
     const flags = v.getUint8(11);
 
-    // Replace these with your actual DOM element IDs in data.html
+    // Update UI
     const jumpsEl = document.getElementById("jumpCount");
     const hrEl = document.getElementById("heartRate");
     const accelEl = document.getElementById("accelMag");
@@ -70,6 +88,13 @@ function onData(event) {
     if (jumpsEl) jumpsEl.textContent = String(jumps);
     if (hrEl) hrEl.textContent = hr === 0 ? "-" : String(hr);
     if (accelEl) accelEl.textContent = String(accelMag);
+
+    // Track for saving later
+    workout.lastJumpCount = jumps;
+    if (workout.active && typeof hr === "number" && hr > 0) {
+        workout.hrSamples.push(hr);
+        if (hr > workout.maxHr) workout.maxHr = hr;
+    }
 
     console.log({ ts, jumps, hr, accelMag, flags });
 }
@@ -84,40 +109,89 @@ async function stopStreaming() {
     await ctrlChar.writeValue(Uint8Array.from([0x00]));
 }
 
+function startWorkout() {
+    workout.active = true;
+    workout.startMs = nowMs();
+    workout.hrSamples = [];
+    workout.maxHr = 0;
+    workout.lastJumpCount = 0;
+}
+
+async function saveWorkoutToDb() {
+    const endMs = nowMs();
+    const durationMs = endMs - workout.startMs;
+
+    const avgHr = averageInt(workout.hrSamples);
+    const maxHr = workout.hrSamples.length ? workout.maxHr : null;
+
+    const payload = {
+        start_time: isoFromMs(workout.startMs),
+        end_time: isoFromMs(endMs),
+        duration_ms: durationMs,
+        jump_count: workout.lastJumpCount,
+        avg_heart_rate_bpm: avgHr,
+        max_heart_rate_bpm: maxHr,
+        device_name: workout.deviceName,
+    };
+
+    const res = await fetch("/api/workouts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.ok) {
+        throw new Error(json.error || `HTTP ${res.status}`);
+    }
+
+    return json.workout;
+}
+
+async function handleStartClick() {
+    try {
+        startWorkout();
+        await startStreaming();
+    } catch (e) {
+        setStatus(String(e));
+    }
+}
+
+async function handleStopClick() {
+    try {
+        workout.active = false;
+
+        await stopStreaming();
+
+        // Save workout to DB
+        await saveWorkoutToDb();
+
+        // If history.js is present, refresh the table
+        if (typeof window.renderHistory === "function") {
+            window.renderHistory().catch(() => {});
+        }
+
+        // Optional: reset UI
+        const jump_counts = document.getElementById("jumpCount");
+        const hr = document.getElementById("heartRate");
+        const acceleration = document.getElementById("accelMag");
+
+        if (jump_counts) jump_counts.textContent = "0";
+        if (hr) hr.textContent = "-";
+        if (acceleration) acceleration.textContent = "0";
+    } catch (e) {
+        setStatus(String(e));
+    }
+}
+
 function initBLE() {
     const btnConnect = document.getElementById("btnConnect");
     const btnStart = document.getElementById("btnStart");
     const btnStop = document.getElementById("btnStop");
 
-    if (btnConnect) {
-        btnConnect.addEventListener("click", () => connectBLE().catch(e => setStatus(String(e))));
-        console.log(`connecting...`);
-    }
-    if (btnStart) btnStart.addEventListener("click", () => startStreaming().catch(e => setStatus(String(e))));
-
-    if (btnStop) {
-        btnStop.addEventListener("click", async () => {
-            try {
-                await stopStreaming(); 
-
-                const jump_counts = document.getElementById('jumpCount');
-                const hr = document.getElementById('heartRate');
-                const acceleration = document.getElementById('accelMag');
-
-                if (jump_counts) jump_counts.textContent = "0";
-                if (hr) hr.textContent = "-";
-                if (acceleration) acceleration.textContent = "0";
-            }
-            catch (e) {
-                setStatus(String(e));
-            }
-
-        });
-    }
-    /*if (btnStop) {
-        btnStop.addEventListener("click", () => stopStreaming().catch(e => setStatus(String(e))));
-        
-    }*/
+    if (btnConnect) btnConnect.addEventListener("click", () => connectBLE().catch(e => setStatus(String(e))));
+    if (btnStart) btnStart.addEventListener("click", () => handleStartClick());
+    if (btnStop) btnStop.addEventListener("click", () => handleStopClick());
 
     setStatus("Disconnected");
     enableControls(false);

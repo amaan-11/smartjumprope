@@ -68,3 +68,4 @@ function initHistory() {
 }
 
 document.addEventListener("DOMContentLoaded", initHistory);
+window.renderHistory = renderHistory;
