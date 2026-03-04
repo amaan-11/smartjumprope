@@ -252,23 +252,18 @@ async function handleStartClick() {
         await startStreaming();
         setStatus("Streaming: ON");
     } catch (e) {
-        workout.active = false;
         setStatus(String(e));
     }
 }
 
 async function handleStopClick() {
     try {
-        const hadWorkout = (workout.startMs !== 0);
-
         workout.active = false;
 
         await stopStreaming();
         setStatus("Streaming: OFF");
 
-        if (hadWorkout) {
-            await saveWorkoutToDb();
-        }
+        await saveWorkoutToDb();
 
         if (typeof window.renderHistory === "function") {
             window.renderHistory().catch(() => {});
