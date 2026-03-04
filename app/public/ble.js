@@ -28,8 +28,6 @@ function dbg(...args) {
 
 let device, server, ctrlChar, dataChar;
 
-<<<<<<< Updated upstream
-=======
 // Workout state (summary only; we do not store raw telemetry in DB)
 const workout = {
     active: false,
@@ -61,7 +59,6 @@ function averageInt(arr) {
     return Math.round(sum / arr.length);
 }
 
->>>>>>> Stashed changes
 function setStatus(msg) {
     const el = document.getElementById("bleStatus");
     if (el) el.textContent = msg;
@@ -157,14 +154,6 @@ function onData(event) {
     const v = event.target.value; // DataView
     const len = v.byteLength;
 
-<<<<<<< Updated upstream
-    // Example packet v1 (12 bytes):
-    // 0: u32 timestamp_ms
-    // 4: u32 jump_count
-    // 8: u8  heart_rate_bpm
-    // 9: u16 accel_mag_mg
-    // 11: u8 flags
-=======
     // Safety: avoid DataView RangeError if firmware sends unexpected payload size.
     if (len !== 12) {
         console.warn("[BLE] Unexpected packet size:", len, "(expected 12). Ignoring.");
@@ -172,27 +161,16 @@ function onData(event) {
     }
 
     // Parse little-endian (true)
->>>>>>> Stashed changes
     const ts = v.getUint32(0, true);
     const jumpRaw = v.getUint32(4, true);
     const hr = v.getUint8(8);
     const accelMag = v.getUint16(9, true);
     const flags = v.getUint8(11);
 
-<<<<<<< Updated upstream
-    // Replace these with your actual DOM element IDs in data.html
-    const jumpsEl = document.getElementById("jumpCount");
-    const hrEl = document.getElementById("heartRate");
-    const accelEl = document.getElementById("accelMag");
-=======
     workout.lastJumpRaw = jumpRaw;
->>>>>>> Stashed changes
 
     const jumpsForUi = workout.active ? jumpRelative(jumpRaw) : jumpRaw;
 
-<<<<<<< Updated upstream
-    console.log({ ts, jumps, hr, accelMag, flags });
-=======
     setLiveUI({ jumps: jumpsForUi, hr, accelMag });
 
     workout.lastJumpCount = jumpsForUi;
@@ -204,7 +182,6 @@ function onData(event) {
     }
 
     dbg("[BLE] pkt", { len, ts, jumpRaw, jumpsForUi, hr, accelMag, flags });
->>>>>>> Stashed changes
 }
 
 async function startStreaming() {
@@ -217,8 +194,6 @@ async function stopStreaming() {
     await ctrlChar.writeValue(Uint8Array.from([0x00]));
 }
 
-<<<<<<< Updated upstream
-=======
 function startWorkout() {
     workout.active = true;
     workout.startMs = nowMs();
@@ -277,18 +252,23 @@ async function handleStartClick() {
         await startStreaming();
         setStatus("Streaming: ON");
     } catch (e) {
+        workout.active = false;
         setStatus(String(e));
     }
 }
 
 async function handleStopClick() {
     try {
+        const hadWorkout = (workout.startMs !== 0);
+
         workout.active = false;
 
         await stopStreaming();
         setStatus("Streaming: OFF");
 
-        await saveWorkoutToDb();
+        if (hadWorkout) {
+            await saveWorkoutToDb();
+        }
 
         if (typeof window.renderHistory === "function") {
             window.renderHistory().catch(() => {});
@@ -300,41 +280,14 @@ async function handleStopClick() {
     }
 }
 
->>>>>>> Stashed changes
 function initBLE() {
     const btnConnect = document.getElementById("btnConnect");
     const btnStart = document.getElementById("btnStart");
     const btnStop = document.getElementById("btnStop");
 
-    if (btnConnect) {
-        btnConnect.addEventListener("click", () => connectBLE().catch(e => setStatus(String(e))));
-        console.log(`connecting...`);
-    }
-    if (btnStart) btnStart.addEventListener("click", () => startStreaming().catch(e => setStatus(String(e))));
-
-    if (btnStop) {
-        btnStop.addEventListener("click", async () => {
-            try {
-                await stopStreaming(); 
-
-                const jump_counts = document.getElementById('jumpCount');
-                const hr = document.getElementById('heartRate');
-                const acceleration = document.getElementById('accelMag');
-
-                if (jump_counts) jump_counts.textContent = "0";
-                if (hr) hr.textContent = "-";
-                if (acceleration) acceleration.textContent = "0";
-            }
-            catch (e) {
-                setStatus(String(e));
-            }
-
-        });
-    }
-    /*if (btnStop) {
-        btnStop.addEventListener("click", () => stopStreaming().catch(e => setStatus(String(e))));
-        
-    }*/
+    if (btnConnect) btnConnect.addEventListener("click", () => connectBLE().catch(e => setStatus(String(e))));
+    if (btnStart) btnStart.addEventListener("click", () => handleStartClick());
+    if (btnStop) btnStop.addEventListener("click", () => handleStopClick());
 
     setStatus("Disconnected");
     enableControls(false);
