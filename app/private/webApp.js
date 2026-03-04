@@ -33,25 +33,6 @@ app.use(
     })
 );
 
-// ===============================
-// Account creation
-// ===============================
-app.post("/new_user", async (req, res) => {
-    try {
-        const { username, user_id } = req.body;
-
-        const user = await db.createUser({ username, user_id });
-
-        req.session.user = { id: user.id, username: user.username };
-
-        return res.redirect("/user-data/rope");
-    } catch (err) {
-        if (err && err.code === "SQLITE_CONSTRAINT") {
-            return res.status(409).json({ error: "Username already exists" });
-        }
-        return res.status(400).json({ error: String(err.message || err) });
-    }
-});
 
 // ===============================
 // Rate limits
@@ -80,6 +61,27 @@ const login_user_failed_limiter = rateLimit({
 });
 
 // ===============================
+// Account creation
+// ===============================
+app.post("/new_user", login_ip_limiter, async (req, res) => {
+    try {
+        const { username, user_id } = req.body;
+
+        const user = await db.createUser({ username, user_id });
+
+        req.session.user = { id: user.id, username: user.username };
+
+        return res.redirect("/user-data/rope");
+    } 
+    catch (err) {
+        if (err && err.code === "SQLITE_CONSTRAINT") {
+            return res.status(409).json({ error: "Username already exists" });
+        }
+        return res.status(400).json({ error: String(err.message || err) });
+    }
+});
+
+// ===============================
 // Login
 // ===============================
 app.post("/login", login_ip_limiter, login_user_failed_limiter, async (req, res) => {
@@ -93,7 +95,8 @@ app.post("/login", login_ip_limiter, login_user_failed_limiter, async (req, res)
 
         req.session.user = { id: user.id, username: user.username };
         return res.redirect("/user-data/rope");
-    } catch (err) {
+    } 
+    catch (err) {
         return res.status(500).json({ error: String(err.message || err) });
     }
 });
@@ -157,7 +160,8 @@ app.post("/api/workouts", authMiddleware, async (req, res) => {
         const userId = req.session.user.id;
         const workout = await db.insertWorkoutForUser(userId, req.body);
         res.status(201).json({ ok: true, workout });
-    } catch (err) {
+    } 
+    catch (err) {
         res.status(400).json({ ok: false, error: String(err.message || err) });
     }
 });
@@ -167,7 +171,8 @@ app.get("/api/workouts", authMiddleware, async (req, res) => {
         const userId = req.session.user.id;
         const workouts = await db.listWorkoutsForUser(userId, req.query.limit);
         res.json({ ok: true, workouts });
-    } catch (err) {
+    } 
+    catch (err) {
         res.status(500).json({ ok: false, error: String(err.message || err) });
     }
 });
