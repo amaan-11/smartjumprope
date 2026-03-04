@@ -40,15 +40,12 @@ app.post("/new_user", async (req, res) => {
     try {
         const { username, user_id } = req.body;
 
-        // создать пользователя
         const user = await db.createUser({ username, user_id });
 
-        // записать в сессию
         req.session.user = { id: user.id, username: user.username };
 
         return res.redirect("/user-data/rope");
     } catch (err) {
-        // username уже существует
         if (err && err.code === "SQLITE_CONSTRAINT") {
             return res.status(409).json({ error: "Username already exists" });
         }

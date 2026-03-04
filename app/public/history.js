@@ -25,7 +25,7 @@ async function fetchHistory() {
     const json = await res.json().catch(() => ({}));
 
     if (res.status === 401) {
-        // не залогинен — показываем пустую историю
+        
         return [];
     }
 

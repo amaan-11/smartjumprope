@@ -11,7 +11,6 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     }
     console.log("SQLite DB opened:", DB_PATH);
 
-    // Включаем foreign_keys (не навредит даже если FK не определены)
     db.run("PRAGMA foreign_keys = ON;");
 });
 
@@ -77,6 +76,28 @@ function requireNonEmptyString(x, fieldName) {
     return x.trim();
 }
 
+const USERNAME_MIN_LEN = 4;
+const USERNAME_MAX_LEN = 20;
+
+function requireUsername(x) {
+    if (typeof x !== "string") throw new Error("username must be a string");
+    const s = x.trim();
+    if (s.length < USERNAME_MIN_LEN || s.length > USERNAME_MAX_LEN) {
+        throw new Error(`username length must be ${USERNAME_MIN_LEN}-${USERNAME_MAX_LEN} characters`);
+    }
+    return s;
+}
+
+// user_id: strictly 6 digits
+function requireUserId6Digits(x) {
+    if (typeof x !== "string") throw new Error("user_id must be a string");
+    const s = x.trim();
+    if (!/^\d{6}$/.test(s)) {
+        throw new Error("user_id must be 6 digits");
+    }
+    return s;
+}
+
 // --- public API ---
 async function init() {
     await run(`
@@ -87,9 +108,18 @@ async function init() {
           username TEXT NOT NULL UNIQUE,
           user_id   TEXT NOT NULL
         );
+        
     `);
 
-    // Создаём workouts (как раньше)
+    // After CREATE TABLE users ...
+
+    // user_id must also be unique
+    await run(`CREATE UNIQUE INDEX IF NOT EXISTS ux_users_user_id ON users(user_id);`);
+
+
+    await run(`CREATE UNIQUE INDEX IF NOT EXISTS ux_users_username_user_id ON users(username, user_id);`);
+
+    // Create workouts (as before)
     await run(`
         CREATE TABLE IF NOT EXISTS workouts (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -108,12 +138,11 @@ async function init() {
         );
     `);
 
-    // ВАЖНО: добавляем колонку user_id если её ещё нет
+    // IMPORTANT: add the user_id column if it doesn't exist yet
     const cols = await all(`PRAGMA table_info(workouts);`);
     const hasUserId = cols.some((c) => c.name === "user_id");
     if (!hasUserId) {
         await run(`ALTER TABLE workouts ADD COLUMN user_id INTEGER;`);
-        // Старые записи (если были) останутся с user_id = NULL и никому не покажутся (это ок для твоего требования)
     }
 
     await run(`CREATE INDEX IF NOT EXISTS idx_workouts_user_start ON workouts(user_id, start_time);`);
@@ -122,16 +151,60 @@ async function init() {
 }
 
 async function createUser({ username, user_id }) {
-    const u = requireNonEmptyString(username, "username");
-    const id = requireNonEmptyString(user_id, "user_id");
+    const u = requireUsername(username);
+    const id = requireUserId6Digits(user_id);
 
-    const result = await run(`INSERT INTO users (username, user_id) VALUES (?, ?)`, [u, id]);
-    return get(`SELECT id, username, user_id, created_at FROM users WHERE id = ?`, [result.lastID]);
+
+    const exists = await get(
+        `SELECT id, username, user_id FROM users WHERE username = ? OR user_id = ?`,
+        [u, id]
+    );
+
+    if (exists) {
+        if (exists.username === u && exists.user_id === id) {
+            throw new Error("User with the same username and user_id already exists");
+        }
+        if (exists.username === u) {
+            throw new Error("Username already exists");
+        }
+        if (exists.user_id === id) {
+            throw new Error("user_id already exists");
+        }
+        throw new Error("User already exists");
+    }
+
+    try {
+        const result = await run(
+            `INSERT INTO users (username, user_id) VALUES (?, ?)`,
+            [u, id]
+        );
+        return get(
+            `SELECT id, username, user_id, created_at FROM users WHERE id = ?`,
+            [result.lastID]
+        );
+    } catch (err) {
+        // Final safety net: if two requests arrive at the same time, UNIQUE in the DB will trigger here
+        const msg = String(err && err.message ? err.message : err);
+
+        if (msg.includes("users.username")) {
+            throw new Error("Username already exists");
+        }
+        if (msg.includes("users.user_id")) {
+            throw new Error("user_id already exists");
+        }
+        if (msg.includes("ux_users_username_user_id")) {
+            throw new Error("User with the same username and user_id already exists");
+        }
+        if (msg.includes("SQLITE_CONSTRAINT")) {
+            throw new Error("User already exists");
+        }
+        throw err;
+    }
 }
 
 async function findUserByCredentials(username, user_id) {
-    const u = requireNonEmptyString(username, "username");
-    const id = requireNonEmptyString(user_id, "user_id");
+    const u = requireUsername(username);
+    const id = requireUserId6Digits(user_id);
 
     return get(
         `SELECT id, username, user_id, created_at FROM users WHERE username = ? AND user_id = ?`,
@@ -139,7 +212,7 @@ async function findUserByCredentials(username, user_id) {
     );
 }
 
-// --- workouts связаны с пользователем ---
+// --- workouts are linked to the user ---
 async function insertWorkoutForUser(userId, body) {
     const uid = requireIntPositive(userId, "userId");
 
