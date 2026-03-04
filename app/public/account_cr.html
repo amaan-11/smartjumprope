@@ -16,7 +16,17 @@
 		<input type="submit" value="Create Account">
 	</form>
 
+	<div class="popup" id="popup">
+    <p id="popup_text"></p>
+    <button id="close_popup">Close</button>
+	</div>
+
     <script>
+
+		const popup = document.getElementById('popup');
+		const popup_text = document.getElementById('popup_text')
+		const close_btn = document.getElementById('close_popup');
+
         document.getElementById('new_user').addEventListener('submit', function(event) {
             event.preventDefault();
             const username = document.getElementById('new_username').value;
@@ -30,18 +40,36 @@
 			    body: JSON.stringify(data)
 		    })
 
-		    .then(response => {
+		    .then(async response => {
 			    if (response.redirected) {
 				    window.location.href = response.url;
 			    }  
 				//if username/user_id already exist
 			    else if(!response.ok){
-				    //popup.classList.add('show');
+				    let msg = 'Error';
+    				try {
+      					const json = await response.json();
+      					if (json?.error) msg = json.error;
+    				} 
+					catch {
+      					if (response.status === 409) msg = 'Username already exists';
+      					else if (response.status === 400) msg = 'Error: 400';
+      					else msg = `Server error: ${response.status}`;
+    				}
+
+					popup_text.textContent = msg;
+    				popup.classList.add('show');
+    				return;
 			    }
 
 		    })
 
         })
+
+		close_btn.addEventListener('click', () => {
+    	popup.classList.remove('show');
+    	window.location.href = '/account_cr.html';
+		});
     </script>
 </body>
 </html>

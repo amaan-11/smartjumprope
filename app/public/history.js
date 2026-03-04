@@ -21,8 +21,13 @@ function cell(text) {
 }
 
 async function fetchHistory() {
-    const res = await fetch("/api/workouts");
+    const res = await fetch("/api/workouts", { credentials: "include" });
     const json = await res.json().catch(() => ({}));
+
+    if (res.status === 401) {
+        // не залогинен — показываем пустую историю
+        return [];
+    }
 
     if (!res.ok || !json.ok) {
         throw new Error(json.error || `HTTP ${res.status}`);

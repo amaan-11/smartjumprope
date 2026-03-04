@@ -151,18 +151,24 @@ app.post("/logout", (req, res) => {
 // Workouts API (no auth for now)
 // ===============================
 
-app.post("/api/workouts", async (req, res) => {
+// ===============================
+// Workouts API (AUTH + PER USER)
+// ===============================
+
+app.post("/api/workouts", authMiddleware, async (req, res) => {
     try {
-        const workout = await db.insertWorkout(req.body);
+        const userId = req.session.user.id;
+        const workout = await db.insertWorkoutForUser(userId, req.body);
         res.status(201).json({ ok: true, workout });
     } catch (err) {
         res.status(400).json({ ok: false, error: String(err.message || err) });
     }
 });
 
-app.get("/api/workouts", async (req, res) => {
+app.get("/api/workouts", authMiddleware, async (req, res) => {
     try {
-        const workouts = await db.listWorkouts(req.query.limit);
+        const userId = req.session.user.id;
+        const workouts = await db.listWorkoutsForUser(userId, req.query.limit);
         res.json({ ok: true, workouts });
     } catch (err) {
         res.status(500).json({ ok: false, error: String(err.message || err) });
