@@ -221,9 +221,12 @@ void JumpDetector::getCounts(uint32_t countsX[NUM_TIMING_CONFIGS],
                              uint32_t countsY[NUM_TIMING_CONFIGS],
                              uint32_t countsZ[NUM_TIMING_CONFIGS]) {
   for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
-    countsX[i] = _axisX.configs[i].jumpCount;
-    countsY[i] = _axisY.configs[i].jumpCount;
-    countsZ[i] = _axisZ.configs[i].jumpCount;
+    if (countsX)
+      countsX[i] = _axisX.configs[i].jumpCount;
+    if (countsY)
+      countsY[i] = _axisY.configs[i].jumpCount;
+    if (countsZ)
+      countsZ[i] = _axisZ.configs[i].jumpCount;
   }
 }
 
