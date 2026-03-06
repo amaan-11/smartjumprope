@@ -274,7 +274,7 @@ void heartRateTask(void *param) {
       }
     }
 
-    vTaskDelay(pdMS_TO_TICKS(1000 / SPO2_SAMPLE_HZ));
+    vTaskDelay(pdMS_TO_TICKS(20));
   }
 }
 
