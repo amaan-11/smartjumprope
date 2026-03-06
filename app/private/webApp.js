@@ -8,19 +8,19 @@ const rateLimit = require("express-rate-limit");
 const { ipKeyGenerator } = require("express-rate-limit");
 const session = require("express-session");
 
-const cors = require("cors");
+//uncomment if needed
+//const cors = require("cors");
+
 const db = require("./data_base");
 
 const port = 3000;
 
 // Serve frontend assets (Daniel’s public folder)
 app.use(express.static(path.join(__dirname, "../public")));
-
-// JSON bodies
 app.use(express.json());
 
 // Allow GitHub Pages (and other origins) to call this backend
-app.use(cors());
+//app.use(cors());
 
 // Sessions
 app.use(
