@@ -128,13 +128,15 @@ void displayTask(void *param) {
       // ===== ACCEL Z summary =====
       display->drawString(20, 0, "JUMP TOTAL");
 
-      uint32_t totalX, totalY, totalZ;
-      float rateX, rateY, rateZ;
+      uint32_t selectedJumpCount;
+
       {
         MutexGuard lock(dataMutex);
-        accelDetector->getTotalJumps(totalX, totalY, totalZ);
-        accelDetector->getAverageRates(rateX, rateY, rateZ);
+        accelDetector->getCounts(nullptr, nullptr, accelCountsZ);
       }
+
+      selectedJumpCount = accelCountsZ[3]; // look this up in jump.cpp
+
       snprintf(line, sizeof(line), "Jumps: %lu", totalZ);
       display->drawString(15, 25, line);
       snprintf(line, sizeof(line), "Rate:  %.0f/min", rateZ);

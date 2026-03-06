@@ -43,9 +43,9 @@ static const struct {
   uint32_t rise;
   uint32_t fall;
 } TIMING_CONFIGS[NUM_TIMING_CONFIGS] = {
-    {175, 175}, // Fast
-    {180, 180}, // Medium
-    {190, 190}, // Slow
+    {180, 180}, // Fast
+    {190, 190}, // Medium
+    {200, 200}, // Slow
     {210, 210}  // Very slow
 };
 
