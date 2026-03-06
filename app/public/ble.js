@@ -33,13 +33,13 @@ const workout = {
     active: false,
     startMs: 0,
 
-    // Jump tracking:
+    // Latest raw jump count received from device
     lastJumpRaw: 0,
+
+    // Workout-relative jump count shown in UI / saved to DB
     lastJumpCount: 0,
 
-    // Baseline fallback (in case firmware sends cumulative count)
-    preStartJumpRaw: null,
-    baselineMode: "unknown", // "cumulative" | "firmware_reset" | "unknown"
+    // Explicit website-side workout baseline
     jumpBaseline: 0,
 
     // HR tracking:
@@ -50,8 +50,13 @@ const workout = {
     deviceName: "JRope-C6",
 };
 
-function nowMs() { return Date.now(); }
-function isoFromMs(ms) { return new Date(ms).toISOString(); }
+function nowMs() {
+    return Date.now();
+}
+
+function isoFromMs(ms) {
+    return new Date(ms).toISOString();
+}
 
 function averageInt(arr) {
     if (!arr.length) return null;
@@ -81,39 +86,15 @@ function setLiveUI({ jumps, hr, accelMag }) {
     if (accelEl) accelEl.textContent = String(accelMag);
 }
 
-// Auto-baseline detection (only needed if firmware does NOT reset transmitted jump_count on Start).
-function resolveBaselineIfNeeded(jumpRaw) {
-    if (workout.baselineMode !== "unknown") return;
+function getWorkoutRelativeJumps(jumpRaw) {
+    if (!workout.active) return jumpRaw;
 
-    if (workout.preStartJumpRaw == null) {
-        workout.baselineMode = "unknown";
-        workout.jumpBaseline = 0;
-        return;
+    if (jumpRaw >= workout.jumpBaseline) {
+        return jumpRaw - workout.jumpBaseline;
     }
 
-    if (jumpRaw >= workout.preStartJumpRaw) {
-        workout.baselineMode = "cumulative";
-        workout.jumpBaseline = workout.preStartJumpRaw;
-    } else {
-        workout.baselineMode = "firmware_reset";
-        workout.jumpBaseline = 0;
-    }
-
-    dbg("[BLE] Baseline resolved:", {
-        baselineMode: workout.baselineMode,
-        preStartJumpRaw: workout.preStartJumpRaw,
-        jumpBaseline: workout.jumpBaseline,
-    });
-}
-
-function jumpRelative(jumpRaw) {
-    resolveBaselineIfNeeded(jumpRaw);
-
-    const base = workout.jumpBaseline || 0;
-    if (jumpRaw >= base) return (jumpRaw - base);
-
-    // Avoid underflow if baseline is wrong for any reason
-    return jumpRaw;
+    // Safety fallback in case jumpRaw becomes smaller unexpectedly
+    return 0;
 }
 
 async function connectBLE() {
@@ -169,7 +150,7 @@ function onData(event) {
 
     workout.lastJumpRaw = jumpRaw;
 
-    const jumpsForUi = workout.active ? jumpRelative(jumpRaw) : jumpRaw;
+    const jumpsForUi = getWorkoutRelativeJumps(jumpRaw);
 
     setLiveUI({ jumps: jumpsForUi, hr, accelMag });
 
@@ -198,18 +179,23 @@ function startWorkout() {
     workout.active = true;
     workout.startMs = nowMs();
 
-    workout.preStartJumpRaw = (typeof workout.lastJumpRaw === "number") ? workout.lastJumpRaw : null;
-    workout.baselineMode = "unknown";
-    workout.jumpBaseline = 0;
+    // Explicitly baseline to the current device count at workout start
+    workout.jumpBaseline = workout.lastJumpRaw;
 
     workout.hrSamples = [];
     workout.maxHr = 0;
-
     workout.lastJumpCount = 0;
+
+    setLiveUI({
+        jumps: 0,
+        hr: 0,
+        accelMag: 0,
+    });
 
     dbg("[WORKOUT] Start", {
         startMs: workout.startMs,
-        preStartJumpRaw: workout.preStartJumpRaw,
+        jumpBaseline: workout.jumpBaseline,
+        lastJumpRaw: workout.lastJumpRaw,
     });
 }
 
