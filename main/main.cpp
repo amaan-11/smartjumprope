@@ -128,15 +128,13 @@ void displayTask(void *param) {
       // ===== ACCEL Z summary =====
       display->drawString(20, 0, "JUMP TOTAL");
 
-      uint32_t selectedJumpCount;
-
+      uint32_t totalX, totalY, totalZ;
+      float rateX, rateY, rateZ;
       {
         MutexGuard lock(dataMutex);
-        accelDetector->getCounts(nullptr, nullptr, accelCountsZ);
+        accelDetector->getTotalJumps(totalX, totalY, totalZ);
+        accelDetector->getAverageRates(rateX, rateY, rateZ);
       }
-
-      selectedJumpCount = accelCountsZ[3]; // look this up in jump.cpp
-
       snprintf(line, sizeof(line), "Jumps: %lu", totalZ);
       display->drawString(15, 25, line);
       snprintf(line, sizeof(line), "Rate:  %.0f/min", rateZ);
@@ -183,13 +181,14 @@ void displayTask(void *param) {
    ========================= */
 void bleUpdateTask(void *param) {
   while (true) {
-    uint32_t totalX, totalY, totalZ;
-    float rateX, rateY, rateZ;
+    uint32_t selectedJumpCount;
+
     {
       MutexGuard lock(dataMutex);
-      accelDetector->getTotalJumps(totalX, totalY, totalZ);
-      accelDetector->getAverageRates(rateX, rateY, rateZ);
+      accelDetector->getCounts(nullptr, nullptr, accelCountsZ);
     }
+
+    selectedJumpCount = accelCountsZ[3]; // look this up in the jump.cpp
 
     int32_t hr;
     int8_t hrValid;
@@ -206,12 +205,7 @@ void bleUpdateTask(void *param) {
     // Only send real SpO2 when the algorithm says it's valid; otherwise 0
     uint8_t hr_to_send = hrValid ? (uint8_t)hr : 0;
     uint8_t spo2_to_send = spo2Valid ? (uint8_t)spo2 : 0;
-
-    jr_ble_set_sensor_snapshot(totalZ,       // jump count (Z-axis only)
-                               hr_to_send,   // heart rate bpm, 0 if invalid
-                               spo2_to_send, // SpO2 %, 0 if invalid
-                               0             // flags — reserved for now
-    );
+    jr_ble_set_sensor_snapshot(selectedJumpCount, hr_to_send, spo2_to_send, 0);
 
     vTaskDelay(pdMS_TO_TICKS(200));
   }
