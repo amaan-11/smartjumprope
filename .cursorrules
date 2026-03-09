@@ -1,0 +1,3 @@
+For C code, use Clang-compatible syntax.
+Error messages should be clear and explanatory.
+Prefer modern C11/C17 standards.
