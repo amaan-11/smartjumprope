@@ -57,9 +57,7 @@ static TaskHandle_t hrTaskHandle = nullptr;
 
 // Forward declaration — defined later in this file
 void heartRateTask(void *param);
-display->clear();
-display->drawString(10, 10, "HR_task");
-display->commit();
+
 
 static void onHRCmd(uint8_t cmd)
 {
@@ -67,6 +65,9 @@ static void onHRCmd(uint8_t cmd)
   {
     if (hrTaskHandle == nullptr)
     {
+      display->clear();
+      display->drawString(10, 10, "HR_task");
+      display->commit();
       ESP_LOGI(TAG, "BLE: starting HR task");
       hrTaskShouldRun = true;
       xTaskCreate(heartRateTask, "hr_task", 3072, nullptr, 3, &hrTaskHandle);
