@@ -46,17 +46,15 @@ public:
   void jumpDetectionTask();
   esp_err_t readAccelRaw(int16_t &ax, int16_t &ay, int16_t &az);
 
-  void getCounts(uint32_t countsX[NUM_TIMING_CONFIGS],
-                 uint32_t countsY[NUM_TIMING_CONFIGS],
+  void getCounts(
                  uint32_t countsZ[NUM_TIMING_CONFIGS]);
 
   void getTimingConfig(int configIndex, uint32_t &riseDuration,
                        uint32_t &fallDuration);
 
-  void getTotalJumps(uint32_t &totalX, uint32_t &totalY,
-                     uint32_t &totalZ) const;
+  void getTotalJumps(uint32_t &totalZ) const;
 
-  void getAverageRates(float &rateX, float &rateY, float &rateZ) const;
+  void getAverageRates(float &rateZ) const;
 
   bool isCalibrated() const;
 
@@ -67,8 +65,6 @@ private:
   float _thresholdFactor;
   uint32_t _minIntervalMs;
 
-  AxisDetector _axisX;
-  AxisDetector _axisY;
   AxisDetector _axisZ;
 
   float _avgJump;             // Adaptive threshold baseline

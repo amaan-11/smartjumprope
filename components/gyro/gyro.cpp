@@ -91,7 +91,7 @@ void SensorReading::readSensitivity() {
 }
 
 // Read accelerometer only
-esp_err_t SensorReading::readRawAccel(int16_t &ax, int16_t &ay, int16_t &az) {
+esp_err_t SensorReading::readRawAccel(int16_t &az) {
   if (!_initialized)
     return ESP_FAIL;
 
@@ -104,9 +104,6 @@ esp_err_t SensorReading::readRawAccel(int16_t &ax, int16_t &ay, int16_t &az) {
                                                raw, 6, pdMS_TO_TICKS(100));
   if (ret != ESP_OK)
     return ret;
-
-  ax = (raw[0] << 8) | raw[1];
-  ay = (raw[2] << 8) | raw[3];
   az = (raw[4] << 8) | raw[5];
 
   return ESP_OK;
@@ -144,13 +141,11 @@ void SensorReading::startTask() {
 
 void SensorReading::taskLoop() {
   while (true) {
-    int16_t ax, ay, az, gx, gy, gz;
+    int16_t az, gx, gy, gz;
 
-    if (readRawAccel(ax, ay, az) == ESP_OK && readRawGyro(gx, gy, gz)) {
+    if (readRawAccel(az) == ESP_OK && readRawGyro(gx, gy, gz)) {
       mpu_data_t data;
-
-      data.ax_g = ax / accel_sensitivity;
-      data.ay_g = ay / accel_sensitivity;
+      
       data.az_g = az / accel_sensitivity;
 
       data.gx_dps = gx / gyro_sensitivity;

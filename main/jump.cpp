@@ -45,12 +45,11 @@ JumpDetector::JumpDetector(SensorReading *sensor,
       _calibrationComplete(false), _calibrationJumps(0) {
 
   // Initialize axis names
-  strcpy(_axisX.name, "X");
-  strcpy(_axisY.name, "Y");
+  
   strcpy(_axisZ.name, "Z");
 
   // Initialize all timing configs for all axes
-  for (AxisDetector *axis : {&_axisX, &_axisY, &_axisZ}) {
+  for (AxisDetector *axis : {&_axisZ}) {
     for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
       axis->configs[i].minRiseDuration = TIMING_CONFIGS[i].rise;
       axis->configs[i].minFallDuration = TIMING_CONFIGS[i].fall;
@@ -73,15 +72,12 @@ uint32_t JumpDetector::getMillis() {
 }
 
 void JumpDetector::update() {
-  int16_t ax, ay, az;
+  int16_t az;
 
-  if (_sensor->readRawAccel(ax, ay, az) != ESP_OK)
+  if (_sensor->readRawAccel( az) != ESP_OK)
     return;
 
   uint32_t now = getMillis();
-
-  updateAxis(_axisX, (float)ax, now);
-  updateAxis(_axisY, (float)ay, now);
   updateAxis(_axisZ, (float)az, now);
 }
 
@@ -196,7 +192,7 @@ void JumpDetector::updateConfig(JumpConfig &config, float value, uint32_t now) {
 }
 
 int JumpDetector::getConfigIndex(JumpConfig *config) {
-  for (AxisDetector *axis : {&_axisX, &_axisY, &_axisZ}) {
+  for (AxisDetector *axis : {&_axisZ}) {
     for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
       if (&axis->configs[i] == config) {
         return i;
@@ -206,14 +202,9 @@ int JumpDetector::getConfigIndex(JumpConfig *config) {
   return -1;
 }
 
-void JumpDetector::getCounts(uint32_t countsX[NUM_TIMING_CONFIGS],
-                             uint32_t countsY[NUM_TIMING_CONFIGS],
+void JumpDetector::getCounts(
                              uint32_t countsZ[NUM_TIMING_CONFIGS]) {
   for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
-    if (countsX)
-      countsX[i] = _axisX.configs[i].jumpCount;
-    if (countsY)
-      countsY[i] = _axisY.configs[i].jumpCount;
     if (countsZ)
       countsZ[i] = _axisZ.configs[i].jumpCount;
   }
@@ -227,12 +218,9 @@ void JumpDetector::getTimingConfig(int configIndex, uint32_t &riseDuration,
   }
 }
 
-uint32_t JumpDetector::getAxisTotal(const AxisDetector &axis) const {
-  uint32_t total = 0;
-  for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
-    total += axis.configs[i].jumpCount;
-  }
-  return total;
+uint32_t JumpDetector::getAxisTotal(const AxisDetector &axis) const
+{
+  return axis.configs[2].jumpCount;
 }
 
 float JumpDetector::getAxisRate(const AxisDetector &axis) const {
@@ -254,17 +242,14 @@ float JumpDetector::getAxisRate(const AxisDetector &axis) const {
   return maxJumps / timeMinutes;
 }
 
-void JumpDetector::getTotalJumps(uint32_t &totalX, uint32_t &totalY,
+void JumpDetector::getTotalJumps(
                                  uint32_t &totalZ) const {
-  totalX = getAxisTotal(_axisX);
-  totalY = getAxisTotal(_axisY);
+  
   totalZ = getAxisTotal(_axisZ);
 }
 
-void JumpDetector::getAverageRates(float &rateX, float &rateY,
-                                   float &rateZ) const {
-  rateX = getAxisRate(_axisX);
-  rateY = getAxisRate(_axisY);
+void JumpDetector::getAverageRates(float &rateZ) const
+{
   rateZ = getAxisRate(_axisZ);
 }
 

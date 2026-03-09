@@ -102,7 +102,7 @@ void displayTask(void *param) {
     // --- Fetch Z counts under mutex ---
     {
       MutexGuard lock(dataMutex);
-      accelDetector->getCounts(nullptr, nullptr, accelCountsZ);
+      accelDetector->getCounts(accelCountsZ);
     }
 
     // --- Cycle pages every 3 seconds ---
@@ -128,12 +128,12 @@ void displayTask(void *param) {
       // ===== ACCEL Z summary =====
       display->drawString(20, 0, "JUMP TOTAL");
 
-      uint32_t totalX, totalY, totalZ;
-      float rateX, rateY, rateZ;
+      uint32_t totalZ;
+      float rateZ;
       {
         MutexGuard lock(dataMutex);
-        accelDetector->getTotalJumps(totalX, totalY, totalZ);
-        accelDetector->getAverageRates(rateX, rateY, rateZ);
+        accelDetector->getTotalJumps(totalZ);
+        accelDetector->getAverageRates(rateZ);
       }
       snprintf(line, sizeof(line), "Jumps: %lu", totalZ);
       display->drawString(15, 25, line);
@@ -185,7 +185,7 @@ void bleUpdateTask(void *param) {
 
     {
       MutexGuard lock(dataMutex);
-      accelDetector->getCounts(nullptr, nullptr, accelCountsZ);
+      accelDetector->getCounts(accelCountsZ);
     }
 
     selectedJumpCount = accelCountsZ[3]; // look this up in the jump.cpp
