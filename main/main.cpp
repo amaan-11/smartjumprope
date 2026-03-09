@@ -15,16 +15,14 @@
 /* =========================
    CONFIGURATION
    ========================= */
-#define JUMP_THRESHOLD_FACTOR 1.3f
-#define MIN_JUMP_INTERVAL_MS 300
-#define JUMP_UPDATE_HZ 100
-#define DISPLAY_UPDATE_HZ 4
-#define CALIBRATION_TIME_MS 3000
+constexpr float JUMP_THRESHOLD_FACTOR = 1.3f;
+constexpr int MIN_JUMP_INTERVAL_MS = 300;
+constexpr int JUMP_UPDATE_HZ = 100;
+constexpr int DISPLAY_UPDATE_HZ = 4;
+constexpr int CALIBRATION_TIME_MS = 3000;
 
-// MAX30102 buffer: algorithm needs at least 100 samples at 100 Hz = 1 second
-#define SPO2_BUFFER_SIZE 100
-#define SPO2_SAMPLE_HZ 100
-
+constexpr int SPO2_BUFFER_SIZE = 100;
+constexpr int SPO2_SAMPLE_HZ = 100;
 /* =========================
    GLOBALS
    ========================= */
@@ -313,7 +311,7 @@ void initTask(void *param) {
   xTaskCreate(jumpDetectionTask, "jump_task", 4096, nullptr, 5, nullptr);
   xTaskCreate(displayTask, "display_task", 3072, nullptr, 4, nullptr);
   xTaskCreate(bleUpdateTask, "ble_task", 3072, nullptr, 3, nullptr);
-  xTaskCreate(heartRateTask, "hr_task", 3072, nullptr, 3, nullptr);
+  //xTaskCreate(heartRateTask, "hr_task", 3072, nullptr, 3, nullptr);
 
   ESP_LOGI(TAG, "All tasks started");
   vTaskDelete(nullptr);
