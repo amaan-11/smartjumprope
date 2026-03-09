@@ -7,25 +7,25 @@
 #include <initializer_list>
 
 // ===== Timing + Filtering Controls =====
-#define TIMING_TOLERANCE_MS 40
-#define MAX_PHASE_DURATION_MS 800
-#define FILTER_ALPHA_FAST 0.4f
-#define FILTER_ALPHA_SLOW 0.15f
-#define CALIBRATION_JUMPS 5
+constexpr int TIMING_TOLERANCE_MS = 40;
+constexpr int MAX_PHASE_DURATION_MS = 800;
+constexpr float FILTER_ALPHA_FAST = 0.4f;
+constexpr float FILTER_ALPHA_SLOW = 0.15f;
+constexpr int CALIBRATION_JUMPS = 5;
 
 // Peak detection hysteresis
-#define PEAK_DROP_THRESHOLD 0.85f // 15% drop confirms peak
-#define MIN_PEAK_VALUE 30.0f      // Minimum value to consider
+constexpr float PEAK_DROP_THRESHOLD = 0.85f; // 15% drop confirms peak
+constexpr float MIN_PEAK_VALUE = 30.0f;      // Minimum value to consider
 
 // Adaptive threshold bounds
-#define MIN_THRESHOLD 40.0f
-#define MAX_THRESHOLD 800.0f
-#define INITIAL_THRESHOLD 100.0f
-#define JUMP_THRESHOLD_FACTOR 1.3f
-#define MIN_JUMP_INTERVAL_MS 300
-#define JUMP_UPDATE_HZ 100
-#define DISPLAY_UPDATE_HZ 4
-#define CALIBRATION_TIME_MS 3000
+constexpr float MIN_THRESHOLD = 40.0f;
+constexpr float MAX_THRESHOLD = 800.0f;
+constexpr float INITIAL_THRESHOLD = 100.0f;
+constexpr float JUMP_THRESHOLD_FACTOR = 1.3f;
+constexpr int MIN_JUMP_INTERVAL_MS = 300;
+constexpr int JUMP_UPDATE_HZ = 100;
+constexpr int DISPLAY_UPDATE_HZ = 4;
+constexpr int CALIBRATION_TIME_MS = 3000;
 
 // Timing configurations: {rise, fall} - 4 configs
 static const struct {
