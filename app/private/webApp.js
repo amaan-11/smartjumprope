@@ -51,13 +51,21 @@ const login_user_failed_limiter = rateLimit({
     max: 20,
     standardHeaders: true,
     legacyHeaders: false,
+
     keyGenerator: (req) => {
-        const u = (req.body?.username || "").trim();
-        return u ? `user:${u}` : `ip:${ipKeyGenerator(req.ip)}`;
+        const ip = ipKeyGenerator(req.ip);
+        const u = String(req.body?.username || "").trim()
+
+        return u
+            ? `loginfail:user:${u}:ip:${ip}` : `loginfail:ip:${ip}`;
     },
+
     skipSuccessfulRequests: true,
     requestWasSuccessful: (req, res) => res.statusCode < 400,
-    message: { error: "Too many failed attempts for this username. Try again later." },
+
+    handler: (req, res) => {
+        return res.status(429).json({error: "Too many failed attempts. Try again later."});
+    },
 });
 
 // ===============================
