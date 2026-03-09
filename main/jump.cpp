@@ -6,8 +6,6 @@
 #include <cstring>
 #include <initializer_list>
 
-static const char *TAG = "JUMP";
-
 // ===== Timing + Filtering Controls =====
 #define TIMING_TOLERANCE_MS 40
 #define MAX_PHASE_DURATION_MS 800
@@ -28,15 +26,6 @@ static const char *TAG = "JUMP";
 #define JUMP_UPDATE_HZ 100
 #define DISPLAY_UPDATE_HZ 4
 #define CALIBRATION_TIME_MS 3000
-
-// Calibration tracking
-static uint32_t calibrationStartTime = 0;
-static bool calibrationPhase = true;
-
-// Store counts for display (3 axes * 4 configs each)
-static uint32_t accelCountsX[NUM_TIMING_CONFIGS];
-static uint32_t accelCountsY[NUM_TIMING_CONFIGS];
-static uint32_t accelCountsZ[NUM_TIMING_CONFIGS];
 
 // Timing configurations: {rise, fall} - 4 configs
 static const struct {
