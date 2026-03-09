@@ -56,7 +56,9 @@ function toIntOrNull(x) {
 function requireIntNonNegative(x, fieldName) {
     const n = Number(x);
     if (!Number.isFinite(n) || n < 0) {
-        throw new Error(`${fieldName} must be a non-negative number`);
+        const err = new Error(`${fieldName} must be a non-negative number`);
+        err.status = 400;
+        throw err;
     }
     return Math.trunc(n);
 }
@@ -64,14 +66,18 @@ function requireIntNonNegative(x, fieldName) {
 function requireIntPositive(x, fieldName) {
     const n = Number(x);
     if (!Number.isFinite(n) || n <= 0) {
-        throw new Error(`${fieldName} must be a positive number`);
+        const err = new Error(`${fieldName} must be a positive number`);
+        err.status = 400;
+        throw err;
     }
     return Math.trunc(n);
 }
 
 function requireNonEmptyString(x, fieldName) {
     if (typeof x !== "string" || !x.trim()) {
-        throw new Error(`${fieldName} must be a non-empty string`);
+        const err = new Error(`${fieldName} must be a non-empty string`);
+        err.status = 400;
+        throw err;
     }
     return x.trim();
 }
@@ -80,21 +86,39 @@ const USERNAME_MIN_LEN = 4;
 const USERNAME_MAX_LEN = 20;
 
 function requireUsername(x) {
-    if (typeof x !== "string") throw new Error("username must be a string");
-    const s = x.trim();
-    if (s.length < USERNAME_MIN_LEN || s.length > USERNAME_MAX_LEN) {
-        throw new Error(`username length must be ${USERNAME_MIN_LEN}-${USERNAME_MAX_LEN} characters`);
+    if (typeof x !== "string") {
+        const err = new Error("username must be a string");
+        err.status = 400;
+        throw err;
     }
+
+    const s = x.trim();
+
+    if (s.length < USERNAME_MIN_LEN || s.length > USERNAME_MAX_LEN) {
+        const err = new Error(`username length must be ${USERNAME_MIN_LEN}-${USERNAME_MAX_LEN} characters`);
+        err.status = 400;
+        throw err;
+    }
+
     return s;
 }
 
 // user_id: strictly 6 digits
 function requireUserId6Digits(x) {
-    if (typeof x !== "string") throw new Error("user_id must be a string");
-    const s = x.trim();
-    if (!/^\d{6}$/.test(s)) {
-        throw new Error("user_id must be 6 digits");
+    if (typeof x !== "string") {
+        const err = new Error("user_id must be a string");
+        err.status = 400;
+        throw err;
     }
+
+    const s = x.trim();
+
+    if (!/^\d{6}$/.test(s)) {
+        const err = new Error("user_id must be 6 digits");
+        err.status = 400;
+        throw err;
+    }
+
     return s;
 }
 
@@ -154,7 +178,6 @@ async function createUser({ username, user_id }) {
     const u = requireUsername(username);
     const id = requireUserId6Digits(user_id);
 
-
     const exists = await get(
         `SELECT id, username, user_id FROM users WHERE username = ? OR user_id = ?`,
         [u, id]
@@ -162,15 +185,26 @@ async function createUser({ username, user_id }) {
 
     if (exists) {
         if (exists.username === u && exists.user_id === id) {
-            throw new Error("User with the same username and user_id already exists");
+            const err = new Error("User with the same username already exists");
+            err.status = 409;
+            throw err;
         }
+
         if (exists.username === u) {
-            throw new Error("Username already exists");
+            const err = new Error("Username already exists");
+            err.status = 409;
+            throw err;
         }
+
         if (exists.user_id === id) {
-            throw new Error("user_id already exists");
+            const err = new Error("Try again");
+            err.status = 409;
+            throw err;
         }
-        throw new Error("User already exists");
+
+        const err = new Error("User already exists");
+        err.status = 409;
+        throw err;
     }
 
     try {
@@ -178,26 +212,39 @@ async function createUser({ username, user_id }) {
             `INSERT INTO users (username, user_id) VALUES (?, ?)`,
             [u, id]
         );
+
         return get(
             `SELECT id, username, user_id, created_at FROM users WHERE id = ?`,
             [result.lastID]
         );
-    } catch (err) {
-        // Final safety net: if two requests arrive at the same time, UNIQUE in the DB will trigger here
+    }
+    catch (err) {
         const msg = String(err && err.message ? err.message : err);
 
         if (msg.includes("users.username")) {
-            throw new Error("Username already exists");
+            const e = new Error("Username already exists");
+            e.status = 409;
+            throw e;
         }
+
         if (msg.includes("users.user_id")) {
-            throw new Error("user_id already exists");
+            const e = new Error("wrong username or user_id");
+            e.status = 409;
+            throw e;
         }
+
         if (msg.includes("ux_users_username_user_id")) {
-            throw new Error("User with the same username and user_id already exists");
+            const e = new Error("wrong username or user_id");
+            e.status = 409;
+            throw e;
         }
+
         if (msg.includes("SQLITE_CONSTRAINT")) {
-            throw new Error("User already exists");
+            const e = new Error("User already exists");
+            e.status = 409;
+            throw e;
         }
+
         throw err;
     }
 }
@@ -216,10 +263,23 @@ async function findUserByCredentials(username, user_id) {
 async function insertWorkoutForUser(userId, body) {
     const uid = requireIntPositive(userId, "userId");
 
-    if (!body || typeof body !== "object") throw new Error("Body must be JSON");
+    if (!body || typeof body !== "object") {
+        const err = new Error("Body must be JSON");
+        err.status = 400;
+        throw err;
+    }
 
-    if (!isISODateString(body.start_time)) throw new Error("start_time must be an ISO date string");
-    if (!isISODateString(body.end_time)) throw new Error("end_time must be an ISO date string");
+    if (!isISODateString(body.start_time)) {
+        const err = new Error("start_time must be an ISO date string");
+        err.status = 400;
+        throw err;
+    }
+
+    if (!isISODateString(body.end_time)) {
+        const err = new Error("end_time must be an ISO date string");
+        err.status = 400;
+        throw err;
+    }
 
     const duration_ms = requireIntNonNegative(body.duration_ms, "duration_ms");
     const jump_count = requireIntNonNegative(body.jump_count, "jump_count");

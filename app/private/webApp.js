@@ -77,15 +77,47 @@ app.post("/new_user", login_ip_limiter, async (req, res) => {
 
         const user = await db.createUser({ username, user_id });
 
-        req.session.user = { id: user.id, username: user.username };
+        await new Promise((resolve, reject) => {
+            req.session.regenerate((err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+
+        req.session.user = {
+            id: user.id,
+            username: user.username
+        };
+
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
 
         return res.redirect("/user-data/rope");
     } 
     catch (err) {
-        if (err && err.code === "SQLITE_CONSTRAINT") {
-            return res.status(409).json({ error: "Username already exists" });
+        console.error("New user error:", err);
+
+        let status = 500;
+        let message = "Request error";
+
+        if (err) {
+            if (typeof err.status === "number") status = err.status;
+
+            if (err.message) message = err.message;
         }
-        return res.status(400).json({ error: String(err.message || err) });
+
+        if (status === 500) return res.status(500).json({error: "Server error"});
+
+        return res.status(status).json({error: message
+        });
     }
 });
 
@@ -101,11 +133,46 @@ app.post("/login", login_ip_limiter, login_user_failed_limiter, async (req, res)
             return res.status(401).json({ error: "Invalid username or user ID" });
         }
 
-        req.session.user = { id: user.id, username: user.username };
+        await new Promise((resolve, reject) => {
+            req.session.regenerate((err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+
+        req.session.user = {
+            id: user.id,
+            username: user.username
+        };
+
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+
         return res.redirect("/user-data/rope");
     } 
     catch (err) {
-        return res.status(500).json({ error: String(err.message || err) });
+        console.error("Login error:", err);
+
+        let status = 500;
+        let message = "Request error";
+
+        if (err) {
+            if (typeof err.status === "number") status = err.status;
+
+            if (err.message) message = err.message;
+        }
+
+        if (status === 500) return res.status(500).json({error: "Server error"});      
+
+        return res.status(status).json({error: message});
     }
 });
 
@@ -170,7 +237,22 @@ app.post("/api/workouts", authMiddleware, async (req, res) => {
         res.status(201).json({ ok: true, workout });
     } 
     catch (err) {
-        res.status(400).json({ ok: false, error: String(err.message || err) });
+        console.error("Insert workout error:", err);
+
+        let status = 500;
+        let message = "Request error";
+
+        if (err) {
+            if (typeof err.status === "number") status = err.status;
+
+            if (err.message) message = err.message;
+        }
+
+        if (status === 500) {
+            return res.status(500).json({ok: false, error: "Server error"});
+        }
+
+        return res.status(status).json({ok: false, error: message});
     }
 });
 
@@ -181,7 +263,22 @@ app.get("/api/workouts", authMiddleware, async (req, res) => {
         res.json({ ok: true, workouts });
     } 
     catch (err) {
-        res.status(500).json({ ok: false, error: String(err.message || err) });
+        console.error("List workouts error:", err);
+
+        let status = 500;
+        let message = "Request error";
+
+        if (err) {
+            if (typeof err.status === "number") status = err.status;
+
+            if (err.message) message = err.message;
+        }
+
+        if (status === 500) {
+            return res.status(500).json({ok: false, error: "Server error"});
+        }
+
+        return res.status(status).json({ok: false, error: message});
     }
 });
 
