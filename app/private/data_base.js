@@ -126,11 +126,16 @@ function requireUserId6Digits(x) {
 async function init() {
     await run(`
         CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-          username TEXT NOT NULL UNIQUE,
-          user_id   TEXT NOT NULL
+            username TEXT NOT NULL UNIQUE,
+
+            user_id TEXT NOT NULL
+                CHECK(
+                    length(user_id) = 6
+                    AND user_id GLOB '[0-9][0-9][0-9][0-9][0-9][0-9]'
+                )
         );
         
     `);
@@ -166,7 +171,7 @@ async function init() {
     const cols = await all(`PRAGMA table_info(workouts);`);
     const hasUserId = cols.some((c) => c.name === "user_id");
     if (!hasUserId) {
-        await run(`ALTER TABLE workouts ADD COLUMN user_id INTEGER;`);
+        await run(`ALTER TABLE workouts ADD COLUMN user_id TEXT;`);
     }
 
     await run(`CREATE INDEX IF NOT EXISTS idx_workouts_user_start ON workouts(user_id, start_time);`);
