@@ -132,10 +132,11 @@ async function init() {
             username TEXT NOT NULL UNIQUE,
 
             user_id TEXT NOT NULL
-                CHECK(
-                    length(user_id) = 6
-                    AND user_id GLOB '[0-9][0-9][0-9][0-9][0-9][0-9]'
-                )
+            CHECK (
+                typeof(user_id) = 'text'
+                AND length(user_id) = 6
+                AND user_id GLOB '[0-9][0-9][0-9][0-9][0-9][0-9]'
+            )
         );
         
     `);
@@ -214,7 +215,7 @@ async function createUser({ username, user_id }) {
 
     try {
         const result = await run(
-            `INSERT INTO users (username, user_id) VALUES (?, ?)`,
+            `INSERT INTO users (username, user_id) VALUES (?, CAST(? AS TEXT))`,
             [u, id]
         );
 
