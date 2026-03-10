@@ -52,8 +52,10 @@ async function renderHistory() {
         tr.appendChild(cell(formatDuration(w.duration_ms)));
         tr.appendChild(cell(String(w.jump_count)));
 
+        /*
         tr.appendChild(cell(w.avg_heart_rate_bpm == null ? "-" : String(w.avg_heart_rate_bpm)));
         tr.appendChild(cell(w.max_heart_rate_bpm == null ? "-" : String(w.max_heart_rate_bpm)));
+        */
 
         tr.appendChild(cell(w.device_name || "-"));
 
