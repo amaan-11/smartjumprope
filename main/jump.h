@@ -55,6 +55,7 @@ public:
   void getTotalJumps(uint32_t &totalZ) const;
 
   void getAverageRates(float &rateZ) const;
+  void resetSession();
 
   bool isCalibrated() const;
 

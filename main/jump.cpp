@@ -253,5 +253,26 @@ void JumpDetector::getAverageRates(float &rateZ) const
   rateZ = getAxisRate(_axisZ);
 }
 
+void JumpDetector::resetSession() {
+  _avgJump = INITIAL_THRESHOLD;
+  _calibrationComplete = false;
+  _calibrationJumps = 0;
+
+  for (AxisDetector *axis : {&_axisZ}) {
+    for (int i = 0; i < NUM_TIMING_CONFIGS; i++) {
+      axis->configs[i].jumpCount = 0;
+      axis->configs[i].lastJumpTime = 0;
+      axis->configs[i].state = STATE_IDLE;
+      axis->configs[i].peak = 0.0f;
+      axis->configs[i].valley = 0.0f;
+      axis->configs[i].risingStartTime = 0;
+      axis->configs[i].fallingStartTime = 0;
+      axis->configs[i].lastValue = 0.0f;
+      axis->configs[i].filteredFast = 0.0f;
+      axis->configs[i].filteredSlow = 0.0f;
+    }
+  }
+}
+
 bool JumpDetector::isCalibrated() const { return _calibrationComplete; }
 

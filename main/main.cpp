@@ -52,11 +52,21 @@ static int8_t g_spo2_valid = 0;
    ========================= */
 void jumpDetectionTask(void *param) {
   ESP_LOGI(TAG, "Jump detection task started");
+  bool wasStreaming = false;
   while (true) {
+    const bool isStreaming = jr_ble_is_streaming();
     {
       MutexGuard lock(dataMutex);
+      // Start of a new BLE workout session: reset detector state/counts so
+      // OLED and web session counters both begin from 0.
+      if (isStreaming && !wasStreaming) {
+        accelDetector->resetSession();
+        calibrationStartTime = xTaskGetTickCount() * portTICK_PERIOD_MS;
+        calibrationPhase = true;
+      }
       accelDetector->update();
     }
+    wasStreaming = isStreaming;
     vTaskDelay(pdMS_TO_TICKS(1000 / JUMP_UPDATE_HZ));
   }
 }
