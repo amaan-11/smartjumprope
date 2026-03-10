@@ -67,7 +67,7 @@ void jumpDetectionTask(void *param) {
 void displayTask(void *param) {
   ESP_LOGI(TAG, "Display task started");
 
-  int displayPage = 0; // 0 = jump detail, 1 = jump summary, 2 = HR/SpO2
+  int displayPage = 0; // 0 = jump detail, 1 = jump summary
   uint32_t lastPageChange = 0;
   uint32_t now = 0;
 
@@ -105,7 +105,7 @@ void displayTask(void *param) {
 
     // --- Cycle pages every 3 seconds ---
     if (now - lastPageChange > 3000) {
-      displayPage = (displayPage + 1) % 3;
+      displayPage = (displayPage + 1) % 2;
       lastPageChange = now;
     }
 
@@ -139,6 +139,8 @@ void displayTask(void *param) {
       display->drawString(15, 42, line);
 
     } else {
+      // HR/SpO2 page intentionally disabled for now; keep logic for later reuse.
+      /*
       // ===== HR / SpO2 =====
       display->drawString(20, 0, "VITALS");
 
@@ -167,6 +169,7 @@ void displayTask(void *param) {
       } else {
         display->drawString(10, 38, "SpO2: --");
       }
+      */
     }
 
     display->commit();
