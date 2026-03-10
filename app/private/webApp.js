@@ -29,7 +29,15 @@ app.use(
         secret: process.env.SESSION_SECRET || "temp_key_change_me",
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: false },
+        cookie: {
+            //secure: true if https!
+            secure: false,
+            //cookie secure
+            //httpOnly: true,
+
+            //CSRF block
+            //sameSite: 'lax'
+            },
     })
 );
 
